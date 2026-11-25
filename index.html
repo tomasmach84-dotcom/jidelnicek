@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Můj jídelníček</title>
+<style>
+:root{--bg:#f5f3ec;--card:#fff;--ink:#23302a;--mut:#6b7770;--g:#2f7d4f;--g2:#e3f1e8;--warn:#b4541a;--warn2:#fdeede;--bad:#b3261e;--line:#e2e0d6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 "Segoe UI",system-ui,sans-serif}
+header{background:var(--g);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:1.25rem}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav button{background:transparent;border:0;color:#fff;font:inherit;padding:8px 12px;border-radius:8px;cursor:pointer}
+nav button.on{background:#fff;color:var(--g);font-weight:600}
+main{max-width:1000px;margin:0 auto;padding:14px 14px 80px}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;margin:0 0 12px;box-shadow:0 1px 3px #0001}
+h2{margin:.2em 0 .5em;font-size:1.3rem}h3{margin:.2em 0 .4em;font-size:1.05rem}
+.muted{color:var(--mut);font-size:.9rem}
+button.b,label.b{display:inline-block;background:var(--g);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;cursor:pointer}
+button.b.s{background:var(--g2);color:var(--g)}button.b.w{background:var(--warn2);color:var(--warn)}button.b.x{background:#fff;color:var(--bad);border:1px solid var(--line)}
+button.b.sm{padding:5px 10px;font-size:.88rem}
+input,select,textarea{font:inherit;padding:8px 10px;border:1px solid #cfcdc2;border-radius:8px;background:#fff;max-width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.form label{display:block;font-size:.9rem;color:var(--mut)}
+.form input,.form select{width:100%;margin-top:3px}
+.bar{height:16px;background:#e8e6dc;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--g);transition:width .3s}.bar i.over{background:var(--warn)}
+.meal{border-left:6px solid var(--line)}.meal.done{border-left-color:var(--g);background:#f4faf6}
+.slot{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+.mname{font-size:1.08rem;margin:.15em 0}
+.chip{display:inline-block;background:#efede4;border-radius:12px;padding:1px 9px;margin:2px 3px 2px 0;font-size:.82rem}
+.soy{background:var(--warn2);color:var(--warn);border-radius:12px;padding:1px 9px;font-size:.82rem;font-weight:600}
+.nosoy{background:var(--g2);color:var(--g);border-radius:12px;padding:1px 9px;font-size:.82rem;font-weight:600}
+.cups{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}.cup{width:26px;height:32px;border:2px solid #7fb4d6;border-radius:3px 3px 8px 8px;background:#fff}.cup.f{background:#a8d4ee}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.day.today{outline:2px solid var(--g)}
+.day ul{padding-left:18px;margin:6px 0;font-size:.9rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+#modal{position:fixed;inset:0;background:#0007;display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:9;overflow:auto}
+#modal.on{display:flex}#modal .box{background:#fff;border-radius:14px;padding:16px;max-width:640px;width:100%}
+.pick{display:flex;gap:10px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:8px 2px;cursor:pointer}.pick:hover{background:#f4faf6}
+.shop li{list-style:none;padding:4px 0}.shop ul{padding:0;margin:0 0 8px}.shop .ck{text-decoration:line-through;color:var(--mut)}
+.shop input{width:20px;height:20px;vertical-align:middle;margin-right:8px}
+.tip{background:var(--g2);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.hide{display:none}
+@media print{header,nav,.noprint,button{display:none!important}body{background:#fff}.card{box-shadow:none;border:1px solid #ccc}}
+#toasts{position:fixed;right:12px;bottom:12px;z-index:20;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.toast{background:#23302a;color:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 4px 16px #0004}.toast button{margin-top:6px}
+.al{border-left:5px solid #e0b252;background:#fff8e6;padding:7px 11px;margin:6px 0;border-radius:6px;font-size:.95rem}.al.i{border-color:#6aa8d6;background:#eef6fc}
+details summary{cursor:pointer;color:var(--g);font-weight:600;margin:4px 0}
+</style>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><meta name="theme-color" content="#2f7d4f">
+</head>
+<body>
+<header>
+  <h1>Můj jídelníček</h1>
+  <nav id="nav"></nav>
+</header>
+<main id="main"></main>
+<div id="modal"><div class="box" id="mbox"></div></div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+/* ============ DATA: recepty z Vašeho jídelníčku (kcal a bílkoviny jsou orientační odhad) ============ */
+const SL=[['sn','Snídaně'],['ds','Dopolední svačina'],['ob','Oběd'],['os','Odpolední svačina'],['ve','Večeře'],['v2','II. večeře']];
+/* kategorie a jednotka surovin: M maso/ryby, D mléčné/vejce, P pečivo/obiloviny, Z zelenina, O ovoce, L luštěniny/ořechy, X ostatní */
+const CAT={M:'Maso a ryby',D:'Mléčné výrobky a vejce',P:'Pečivo a obiloviny',Z:'Zelenina',O:'Ovoce',L:'Luštěniny, ořechy, semínka',X:'Ostatní'};
+const ING={
+'Kuřecí maso':'M','Krůtí maso':'M','Krůtí šunka':'M','Šunka':'M','Vepřová panenka':'M','Hovězí maso':'M','Mleté maso':'M','Králík':'M','Krůtí stehno':'M','Losos':'M','Pstruh':'M','Tuňák':'M','Sumeček africký':'M','Rybí filé':'M',
+'Ricotta':'D','Tvaroh':'D','Bílý jogurt':'D','Ovocný jogurt':'D','Ovocný tvaroh':'D','Cottage':'D','Lučina':'D','Tvrdý sýr':'D','Plátkový sýr':'D','Mozzarella':'D','Feta':'D','Zakysaná smetana':'D','Pomazánkové máslo':'D','Kefír':'D/ml','Mléko':'D/ml','Vejce':'D/ks',
+'Žitný chléb':'P','Špaldový chléb':'P','Celozrnný chléb':'P','Kváskový chléb':'P','Pohankový chléb':'P','Celozrnný toustový chléb':'P','Žitný dalamánek':'P','Špaldový rohlík':'P','Sójový rohlík':'P','Rýžový chlebíček':'P/ks','Žitné pečivo':'P','Celozrnné pečivo':'P','Celozrnná špaldová mouka':'P','Obiloviny na kaši':'P','Pohanka':'P','Rýže natural':'P','Rýže basmati':'P','Divoká rýže':'P','Quinoa':'P','Celozrnný kuskus':'P','Celozrnné těstoviny':'P','Rýžové nudle':'P',
+'Rajče':'Z','Paprika':'Z','Okurka':'Z','Mrkev':'Z','Pórek':'Z','Ředkvičky':'Z','Salát':'Z','Ledový salát':'Z','Špenát':'Z','Brokolice':'Z','Květák':'Z','Cuketa':'Z','Zelené fazolky':'Z','Hrášek':'Z','Celer':'Z','Kedlubna':'Z','Zelí':'Z','Cibule':'Z','Česnek':'Z','Žampiony':'Z','Hlíva ústřičná':'Z','Fenykl':'Z','Dýně':'Z','Červená řepa':'Z','Rukola':'Z','Brambory':'Z','Bílá ředkev':'Z','Zelenina':'Z','Bylinky':'Z','Zelný salát':'Z','Kukuřice':'Z',
+'Ovoce':'O','Jablko':'O','Ananas':'O','Mandarinka':'O','Meloun':'O','Jahody':'O','Rozinky':'O','Sušené ovoce':'O','Pomeranč':'O',
+'Bílé fazole':'L','Fazole adzuki':'L','Ořechy':'L','Mandle':'L','Semínka':'L','Vlašské ořechy':'L','Tofu':'L','Proteinová tyčinka':'L/ks','Proteinový koktejl':'L/ml',
+'Med':'X','Olivový olej':'X','Hořčice':'X','Javorový sirup':'X','Jablečné pyré':'X'
+};
+const R=[];
+function r(s,n,k,p,ing,soy){const i=R.filter(x=>x.s===s).length+1;R.push({id:s+i,s,n,k,p,ing,soy:soy||0});}
+/* soy: 0 bez sóji, 1 obsahuje sóju, 2 může obsahovat sóju (hlídat složení) */
+// Snídaně
+r('sn','Pomazánka z ricotty 80 g s pažitkou, žitný chléb 60 g, salát a rajče',280,14,'Ricotta 80,Žitný chléb 60,Salát 20,Rajče 80,Bylinky 5');
+r('sn','Vejce naměkko, špaldový chléb 60 g, krůtí šunka 30 g, paprika',310,21,'Vejce 1,Špaldový chléb 60,Krůtí šunka 30,Paprika 80');
+r('sn','Kaše (jáhlová, rýžová, ovesná nebo quinoová) 30 g obilovin, mléko, med, ořechy, ovoce',340,11,'Obiloviny na kaši 30,Mléko 150,Med 5,Ořechy 15,Ovoce 80');
+r('sn','Celozrnný toust 50 g zapečený se šunkou 30 g a sýrem 30 g, pórek, rajčata',340,22,'Celozrnný toustový chléb 50,Šunka 30,Tvrdý sýr 30,Pórek 40,Rajče 80');
+r('sn','Tvarohová pomazánka s paprikou (100 g tvarohu), rýžové chlebíčky 4 ks',230,20,'Tvaroh 100,Paprika 60,Rýžový chlebíček 4');
+r('sn','Cottage 120 g, žitný dalamánek 60 g, paprika',280,20,'Cottage 120,Žitný dalamánek 60,Paprika 80');
+r('sn','Míchaná vejce (2 ks) s pórkem a rajčaty, celozrnné toasty 50 g',360,22,'Vejce 2,Pórek 40,Rajče 80,Celozrnný toustový chléb 50');
+r('sn','Lučina 70 g, špaldový chléb 60 g, ředkvičky',320,14,'Lučina 70,Špaldový chléb 60,Ředkvičky 60');
+r('sn','Tuňáková pomazánka s pórkem a hořčicí (50 g tuňáka, lžíce tvarohu), špaldový chléb 60 g, okurka',270,20,'Tuňák 50,Tvaroh 20,Pórek 30,Hořčice 5,Špaldový chléb 60,Okurka 80');
+r('sn','Vejce naměkko, celozrnný chléb 60 g, sýr 30 g, mrkev',340,20,'Vejce 1,Celozrnný chléb 60,Plátkový sýr 30,Mrkev 80');
+r('sn','Ovocný tvarohový koláč z celozrnné špaldové mouky 100 g, kefír 200 ml',360,14,'Celozrnná špaldová mouka 60,Tvaroh 60,Ovoce 80,Kefír 200');
+r('sn','Krůtí šunka 30 g a plátkový sýr 30 g na špaldovém chlebu 60 g, ledový salát',330,23,'Krůtí šunka 30,Plátkový sýr 30,Špaldový chléb 60,Ledový salát 30');
+r('sn','Volské oko s kari na plátku šunky 30 g, kváskový chléb 60 g, bílá ředkev',340,20,'Vejce 1,Šunka 30,Kváskový chléb 60,Bílá ředkev 60');
+r('sn','Lučina 40 g a šunka 30 g, kváskový chléb 50 g, paprika',300,17,'Lučina 40,Šunka 30,Kváskový chléb 50,Paprika 80');
+r('sn','Lučinová pomazánka s vejcem (50 g Lučiny, půl vejce, hořčice, pažitka), špaldový rohlík 60 g, kedlubna',300,17,'Lučina 50,Vejce 1,Hořčice 5,Bylinky 5,Špaldový rohlík 60,Kedlubna 80');
+r('sn','Lučinová pomazánka s vejcem, SÓJOVÝ rohlík 60 g, kedlubna',300,18,'Lučina 50,Vejce 1,Hořčice 5,Bylinky 5,Sójový rohlík 60,Kedlubna 80',1);
+r('sn','Pohanková kaše (30 g pohanky, mléko, lžíce rozinek, lžíce mandlí, javorový sirup nebo strouhané jablko)',330,11,'Pohanka 30,Mléko 150,Rozinky 10,Mandle 10,Jablko 100');
+r('sn','Celerovo-mrkvová pomazánka (tvaroh 50 g, pomazánkové máslo 20 g, citron), pohankový chléb 60 g, mandarinka',290,11,'Mrkev 60,Celer 40,Tvaroh 50,Pomazánkové máslo 20,Pohankový chléb 60,Mandarinka 80');
+// Dopolední svačina
+r('ds','Bílý jogurt 80 g, čerstvé ovoce 150 g',130,5,'Bílý jogurt 80,Ovoce 150');
+r('ds','Ovocný tvaroh 130 g',145,8,'Ovocný tvaroh 130');
+r('ds','Bílý tvaroh 50 g, čerstvé ovoce 150 g',130,7,'Tvaroh 50,Ovoce 150');
+r('ds','Strouhané jablko s mrkví a kousky ananasu (cca 200 g)',100,1,'Jablko 100,Mrkev 60,Ananas 40');
+r('ds','Čerstvé ovoce, jeden kus nebo kousky různých druhů (cca 200 g)',100,1,'Ovoce 200');
+r('ds','Jablečné pyré nedoslazené 150 ml, hrst mandlí',190,5,'Jablečné pyré 150,Mandle 20');
+r('ds','Čerstvé ovoce 150 g se sýrem Ricotta nebo Cottage 60 g',150,8,'Ovoce 150,Ricotta 60');
+r('ds','Sušené ovoce s ořechy (cca 40 g)',190,4,'Sušené ovoce 25,Ořechy 15');
+r('ds','Půlka jablka 120 g, plátek tvrdého sýra 50 g',190,12,'Jablko 120,Tvrdý sýr 50');
+r('ds','Kefírové mléko 250 ml',160,8,'Kefír 250');
+r('ds','Ovocný jogurt 160 g',150,6,'Ovocný jogurt 160');
+r('ds','Míchaný ovocný salát s pomerančovou šťávou (do 200 g)',110,2,'Ovoce 150,Pomeranč 50');
+r('ds','Čerstvé jahody 150 g se lžící zakysané smetany light 50 g',110,3,'Jahody 150,Zakysaná smetana 50');
+r('ds','Proteinová tyčinka (cca 40 g) - pozor, často obsahuje sóju',160,12,'Proteinová tyčinka 1',2);
+// Oběd
+r('ob','Rizoto s kuřecím masem 120 g (rýže natural 50 g, hrášek 50 g), rajčatový salát 100 g',480,35,'Kuřecí maso 120,Rýže natural 50,Hrášek 50,Rajče 100');
+r('ob','Rizoto se sumečkem africkým 120 g (rýže natural 50 g, hrášek 50 g), rajčatový salát 100 g',450,30,'Sumeček africký 120,Rýže natural 50,Hrášek 50,Rajče 100');
+r('ob','Vepřová panenka 120 g dušená s brokolicí a mrkví 150 g, vařená brambora 100 g',430,33,'Vepřová panenka 120,Brokolice 90,Mrkev 60,Brambory 100');
+r('ob','Bílé fazole 60 g zapečené s pórkem a rajčaty 200 g, volské oko',410,24,'Bílé fazole 60,Pórek 80,Rajče 120,Vejce 1');
+r('ob','Salát s kuskusem a krůtím masem (maso 130 g, celozrnný kuskus 30 g, zelenina 150 g), jogurtový dresink',430,40,'Krůtí maso 130,Celozrnný kuskus 30,Zelenina 150,Bílý jogurt 40,Bylinky 5');
+r('ob','Čína z kuřecího masa 130 g, cuketa, pórek, paprika, mrkev, žampiony, rýžové nudle 30 g',400,36,'Kuřecí maso 130,Cuketa 60,Pórek 40,Paprika 50,Mrkev 40,Žampiony 50,Rýžové nudle 30');
+r('ob','Čína s TOFU 150 g, cuketa, pórek, paprika, mrkev, žampiony, rýžové nudle 30 g',390,26,'Tofu 150,Cuketa 60,Pórek 40,Paprika 50,Mrkev 40,Žampiony 50,Rýžové nudle 30',1);
+r('ob','Indické kuře (kuřecí prsa 130 g, paprika, cibule, bambusové výhonky, ananas, indické koření), rýže basmati 50 g',440,36,'Kuřecí maso 130,Paprika 80,Cibule 40,Ananas 50,Rýže basmati 50');
+r('ob','Kuřecí plátek 150 g s bylinkami, quinoa 40 g, zelný salát s křenem 150 g',440,42,'Kuřecí maso 150,Bylinky 5,Quinoa 40,Zelný salát 150');
+r('ob','Cuketové placičky s mletým hovězím masem (cuketa 150 g, maso 130 g), brambory 100 g',480,32,'Cuketa 150,Mleté maso 130,Brambory 100');
+r('ob','Salát Caesar (150 g zeleniny) s grilovaným masem 120 g a vejcem, žitné pečivo 50 g',470,42,'Zelenina 150,Kuřecí maso 120,Vejce 1,Žitné pečivo 50');
+r('ob','Květákový mozeček (květák 200 g, vejce 2 ks), vařené brambory ve slupce 100 g, ledový salát',360,22,'Květák 200,Vejce 2,Brambory 100,Ledový salát 30');
+r('ob','Kuřecí steak 150 g, dušené zelené fazolky s cibulkou a česnekem 150 g, quinoa 40 g',430,44,'Kuřecí maso 150,Zelené fazolky 150,Cibule 20,Česnek 5,Quinoa 40');
+r('ob','Zapečená brokolice 150 g s bramborem 100 g, šunkou 50 g a vejcem',380,26,'Brokolice 150,Brambory 100,Šunka 50,Vejce 1');
+r('ob','Zapečené zeleninové brambory (brambory 120 g, brokolice, paprika, rajčata, mangold, pórek) s vejcem a šunkou 60 g',420,25,'Brambory 120,Brokolice 50,Paprika 40,Rajče 50,Pórek 40,Vejce 1,Šunka 60');
+r('ob','Králík 200 g (s kostí) pečený s fenyklem, celerem a mrkví 150 g, divoká rýže 50 g',480,40,'Králík 200,Fenykl 60,Celer 50,Mrkev 40,Divoká rýže 50');
+r('ob','Celozrnné těstoviny 70 g s kuřecím masem 120 g a špenátem 100 g, strouhaný sýr 20 g',520,45,'Celozrnné těstoviny 70,Kuřecí maso 120,Špenát 100,Tvrdý sýr 20');
+r('ob','Pstruh na česneku 150 g, dušený špenát 200 g, vařená brambora ve slupce 100 g',400,38,'Pstruh 150,Česnek 5,Špenát 200,Brambory 100');
+r('ob','Hovězí kostky 130 g s hlívou ústřičnou 100 g, divoká rýže 50 g, mrkvový salát 100 g',470,38,'Hovězí maso 130,Hlíva ústřičná 100,Divoká rýže 50,Mrkev 100');
+r('ob','Kuřecí salát (100 g grilovaných prsou) s vejcem, ananasem, pórkem, celerem, jablkem, kukuřicí a vlašskými ořechy, lžíce jogurtu, celozrnné pečivo 50 g',500,38,'Kuřecí maso 100,Vejce 1,Ananas 30,Pórek 30,Celer 30,Jablko 40,Kukuřice 30,Vlašské ořechy 10,Bílý jogurt 20,Celozrnné pečivo 50');
+r('ob','Krůtí stehno (cca 200 g s kostí) dušené se zelím 100 g, brambora ve slupce 100 g',460,38,'Krůtí stehno 200,Zelí 100,Brambory 100');
+r('ob','Mexický fazolový hrnec (fazole adzuki 50 g, hovězí maso 100 g, cibule, česnek, paprika, čili, rajče, tymián)',440,35,'Fazole adzuki 50,Hovězí maso 100,Cibule 40,Česnek 5,Paprika 60,Rajče 80');
+// Odpolední svačina
+r('os','Kefírové mléko neochucené 250 ml',110,8,'Kefír 250');
+r('os','Syrová zelenina nebo zeleninový salát (cca 100 g), vařené vejce',110,8,'Zelenina 100,Vejce 1');
+r('os','Vodní meloun (cca 300 ml), plátek šunky 40 g',100,8,'Meloun 300,Šunka 40');
+r('os','Rolky z ledového salátu, plátků šunky 25 g a tvrdého sýra 25 g',120,10,'Ledový salát 40,Šunka 25,Tvrdý sýr 25');
+r('os','Šunková rolka s tvarohem a křenem (šunka 40 g, tvaroh 50 g)',110,12,'Šunka 40,Tvaroh 50');
+r('os','Míchaný tvaroh 100 g s pažitkou, paprika 100 g',130,13,'Tvaroh 100,Bylinky 5,Paprika 100');
+r('os','Bílý jogurt 120 g, lžíce semínek nebo hrstka ořechů',170,8,'Bílý jogurt 120,Semínka 15');
+r('os','Salát z červené řepy 150 g s kousky fety 40 g',140,7,'Červená řepa 150,Feta 40');
+r('os','Hrstka ořechů (cca 30 g), kousky zeleniny 100 g',200,6,'Ořechy 30,Zelenina 100');
+r('os','Zeleninový fresh z mrkve, petržele a jablka 300 ml',100,2,'Mrkev 150,Jablko 80');
+r('os','Lučina 70 g s ředkvičkami 150 g',170,8,'Lučina 70,Ředkvičky 150');
+r('os','Cottage pažitkový 60 g, paprika 150 g',90,7,'Cottage 60,Paprika 150');
+r('os','Kousky zeleniny 150 g (okurka, mrkev, rajče, paprika)',40,2,'Zelenina 150');
+r('os','Rajčata 150 g s mozzarellou 50 g',130,9,'Rajče 150,Mozzarella 50');
+r('os','Malý řecký salát 150 g s fetou 20 g',110,4,'Zelenina 130,Feta 20');
+r('os','Dva plátky tvrdého sýra 40 g, kedlubna 100 g',160,11,'Tvrdý sýr 40,Kedlubna 100');
+r('os','Proteinová tyčinka (cca 40 g) - pozor, často obsahuje sóju',160,12,'Proteinová tyčinka 1',2);
+r('os','Proteinový koktejl 250 ml - pozor, často obsahuje sóju',150,20,'Proteinový koktejl 250',2);
+// Večeře
+r('ve','Grilovaný losos 100 g, dušená nebo grilovaná zelenina 250 g',330,25,'Losos 100,Zelenina 250');
+r('ve','Volské oko na plátku šunky 30 g, dušený špenát nebo zelené fazolky 250 g',260,17,'Vejce 1,Šunka 30,Špenát 250');
+r('ve','Obložený talíř (šunka 30 g, sýr 30 g, vejce, řapíkatý celer, paprika, rajče, ředkvičky, ledový salát)',300,22,'Šunka 30,Plátkový sýr 30,Vejce 1,Celer 40,Paprika 50,Rajče 50,Ředkvičky 30,Ledový salát 30');
+r('ve','Zeleninové lečo (cibule, cuketa, rajčata, paprika cca 250 g) se šunkou 30 g a vejcem',270,17,'Zelenina 250,Šunka 30,Vejce 1');
+r('ve','Zeleninová polévka 350 ml s kousky kuřecího masa 80 g',200,18,'Zelenina 200,Kuřecí maso 80');
+r('ve','Zeleninová polévka 350 ml s kousky TOFU 80 g',190,12,'Zelenina 200,Tofu 80',1);
+r('ve','Mozzarella 120 g s ledovým salátem 50 g a rajčaty 200 g, bazalka, olivový olej',360,25,'Mozzarella 120,Ledový salát 50,Rajče 200,Olivový olej 8,Bylinky 3');
+r('ve','Vaječná omeleta (2 vejce) plněná dušeným špenátem 250 g se sýrem 20 g',330,24,'Vejce 2,Špenát 250,Tvrdý sýr 20');
+r('ve','Boršč 350 ml s masem 100 g, červenou řepou, rajčatovým protlakem a lžící zakysané smetany',310,22,'Hovězí maso 100,Červená řepa 150,Zakysaná smetana 20');
+r('ve','Míchaná vajíčka (2 ks) s kousky šunky 20 g a pórku, okurkový salát 250 g',290,20,'Vejce 2,Šunka 20,Pórek 40,Okurka 250');
+r('ve','Zeleninový salát 250 g (ledový salát, rukola, paprika, rajče, cibulka) s tuňákem 70 g a vařeným vejcem',300,28,'Zelenina 250,Tuňák 70,Vejce 1');
+r('ve','Zapečená cuketa 150 g plněná mletým masem 100 g se sýrem 40 g, zeleninová obloha 150 g',430,32,'Cuketa 150,Mleté maso 100,Tvrdý sýr 40,Zelenina 150');
+r('ve','Zeleninový salát 250 g s kousky grilovaných kuřecích prsou 130 g, česnekový dip',310,35,'Zelenina 250,Kuřecí maso 130,Bílý jogurt 30,Česnek 5');
+r('ve','Tvarohová pomazánka s pórkem a česnekem (tvaroh 150 g), zelenina nakrájená na prsty 250 g',220,22,'Tvaroh 150,Pórek 30,Česnek 5,Zelenina 250');
+r('ve','Dýňová, rajčatová nebo špenátová polévka 350 ml s kousky sýra 50 g a lžící zakysané smetany',250,14,'Zelenina 250,Tvrdý sýr 50,Zakysaná smetana 20');
+r('ve','Krůtí salát na thajský způsob (krůtí prsa 150 g, listový salát, strouhaná mrkev, chilli)',300,38,'Krůtí maso 150,Salát 80,Mrkev 60');
+r('ve','Zeleninová čína 250 g (mrkev, pórek, paprika) s kousky kuřecího masa 130 g',270,32,'Zelenina 250,Kuřecí maso 130');
+r('ve','Zeleninová čína 250 g (mrkev, pórek, paprika) s kousky TOFU 150 g',250,22,'Zelenina 250,Tofu 150',1);
+r('ve','Sumeček africký 130 g pečený s bylinkami, plněné žampiony 100 g se špenátem 150 g zapečené se sýrem 40 g',380,40,'Sumeček africký 130,Bylinky 5,Žampiony 100,Špenát 150,Tvrdý sýr 40');
+r('ve','Grilovaný špíz (kuřecí nebo krůtí maso 130 g, fenykl, cibule, červená a žlutá paprika), bylinkovo-česneková zálivka',280,33,'Kuřecí maso 130,Fenykl 60,Cibule 30,Paprika 100,Česnek 5');
+r('ve','Rybí filé 200 g na kmíně s česnekem, dušené zelené fazolky 200 g na cibulce',290,38,'Rybí filé 200,Česnek 5,Zelené fazolky 200,Cibule 30');
+// II. večeře
+r('v2','Bílý jogurt 120 g',70,5,'Bílý jogurt 120');
+r('v2','Bílý tvaroh 100 g',100,12,'Tvaroh 100');
+r('v2','Kefírové mléko 200 ml',90,7,'Kefír 200');
+r('v2','Syrová zelenina cca 150 g',40,2,'Zelenina 150');
+r('v2','Zeleninová polévka 200 ml',50,2,'Zelenina 120');
+r('v2','Vodní meloun 200 g',60,1,'Meloun 200');
+r('v2','Kousek nízkotučného sýra 50 g',100,11,'Tvrdý sýr 50');
+r('v2','Míchaný zeleninový salát 150 g',50,2,'Zelenina 150');
+r('v2','Syrová mrkev 150 g',60,1,'Mrkev 150');
+const RB={};R.forEach(x=>RB[x.id]=x);
+/* záměny: jen stejný druh suroviny (drůbež za drůbež, ryba za rybu...), aby zůstal smysl jídelníčku od specialisty */
+const SUB={};
+[['Kuřecí maso','Krůtí maso','Králík'],['Losos','Pstruh','Sumeček africký','Rybí filé'],['Ricotta','Cottage','Tvaroh','Lučina'],['Mozzarella','Feta','Tvrdý sýr'],['Žitný chléb','Špaldový chléb','Celozrnný chléb','Kváskový chléb','Pohankový chléb'],['Rýže natural','Rýže basmati','Divoká rýže','Quinoa','Pohanka','Celozrnný kuskus'],['Brokolice','Zelené fazolky','Špenát','Cuketa'],['Bílý jogurt','Kefír']].forEach(g=>g.forEach(a=>SUB[a]=g.filter(b=>b!==a)));
+Object.assign(SUB,{'Krůtí stehno':['Kuřecí maso','Krůtí maso'],'Vepřová panenka':['Kuřecí maso','Krůtí maso'],'Hovězí maso':['Kuřecí maso','Krůtí maso','Králík'],'Mleté maso':['Kuřecí maso','Krůtí maso'],'Tofu':['Kuřecí maso','Krůtí maso'],'Tuňák':['Losos','Rybí filé']});
+function ingList(x,d,s){const sub=(d&&d.sub&&d.sub[s])||{};if(!x._p)x._p=x.ing.split(',').map(i=>{const m=i.trim().match(/^(.*) (\d+)$/);return m?{o:m[1],q:+m[2]}:null;}).filter(Boolean);return x._p.map(g=>({n:sub[g.o]||g.o,o:g.o,q:g.q}));}
+function hasNo(x){return x.ing.split(',').some(i=>S.noing.includes(i.trim().replace(/ \d+$/,'')));}
+
+const TIPS=[
+'Pauzy mezi jídly by neměly být delší než 3 hodiny. Tělo si zvykne a nebrání se spalování zásob.',
+'Poslední jídlo dne mějte 2 až 3 hodiny před spaním.',
+'Zapisujte všechno, co sníte, i kdy. Tady na to stačí jedno klepnutí.',
+'Hubněte pomalu. Ideální úbytek je kolem půl kila za týden.',
+'Nic si nevyčítejte. Narozeniny a Vánoce k životu patří, další den jedete zase podle plánu.',
+'Pijte dřív, než dostanete žízeň. Káva, alkohol a silný černý čaj se do pitného režimu nepočítají.',
+'Stačí chůze. Začněte pár minutami a každý den přidejte trochu.',
+'Ke každému hlavnímu jídlu patří bílkovina. Samotné sacharidy (pečivo, těstoviny) vás nasytí jen krátce.',
+'Bílé pečivo, sladké nápoje a cukr vynechte, nahraďte je celozrnnými variantami.',
+'Odpočinek a spánek jsou součást hubnutí. Jeden den volna pro sebe vám prospěje.',
+'Sója se schovává v pečivu, uzeninách a tyčinkách. Čtěte složení: sójová mouka, sójová bílkovina, sójový olej, sójový lecitin (E322).',
+'Nehubnete dietou, ale měníte styl. Malé cíle vedou k velkému výsledku.'
+];
+
+/* ============ STAV ============ */
+const KEY='jidelnicek_v1';
+let S=load();
+function defaults(){return {pf:{name:'',sex:'',age:'',h:'',w:'',goal:'',act:'1.375',kcal:''},set:{ds:true,os:true,v2:false,soy:'min',deficit:500,bed:'22:00',trips:'2',t1:'4',rt:{sn:'07:30',ds:'10:00',ob:'12:30',os:'15:30',ve:'18:30',v2:'20:30'}},plan:{},wt:[],fav:[],ban:[],noing:[],shop:{},custom:[],cn:0,price:{},rem:{on:false,w:'',fired:{}},rm:0,smart:{},pantry:{},pantryDone:{},fq:''};}
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j){const d=defaults();return Object.assign(d,j,{pf:Object.assign(d.pf,j.pf),set:Object.assign(d.set,j.set)});}}catch(e){}return defaults();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+S.custom.forEach(x=>{R.push(x);RB[x.id]=x;});
+
+/* ============ POMOCNÉ ============ */
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const addD=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d);};
+const TODAY=()=>iso(new Date());
+const DN=['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];
+const fmt=s=>{const d=parse(s);return DN[d.getDay()]+' '+d.getDate()+'. '+(d.getMonth()+1)+'.';};
+const fmtS=s=>{const d=parse(s);return d.getDate()+'. '+(d.getMonth()+1)+'.';};
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const nowT=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes());};
+
+function curW(){const l=S.wt.length?S.wt[S.wt.length-1].w:+S.pf.w;return l||0;}
+function bmr(){const p=S.pf,w=curW();if(!w||!+p.h||!+p.age||!p.sex)return 0;return 10*w+6.25*(+p.h)-5*(+p.age)+(p.sex==='m'?5:-161);}
+function target(){
+  if(+S.pf.kcal>0)return Math.round(+S.pf.kcal);
+  const b=bmr();if(!b)return 1500;
+  const floor=S.pf.sex==='m'?1500:1200;
+  return Math.max(floor,Math.round((b*(+S.pf.act||1.375)-(+S.set.deficit||500))/10)*10);
+}
+function activeSlots(){return SL.map(x=>x[0]).filter(s=>s==='sn'||s==='ob'||s==='ve'||S.set[s]);}
+function slotName(s){return SL.find(x=>x[0]===s)[1];}
+function waterGoal(){const w=curW()||80;return clamp(Math.round(w*0.03/0.25),6,14);}
+
+/* ============ GENERÁTOR ============ */
+function allowedGen(x){return S.set.soy==='any'?true:!x.soy;}
+function allowedPick(x){return S.set.soy==='strict'?!x.soy:true;}
+function pool(s){return R.filter(x=>x.s===s&&!S.ban.includes(x.id)&&allowedGen(x)&&!hasNo(x));}
+function recentIds(date){const set=new Set();for(let i=-4;i<=4;i++){if(!i)continue;const d=S.plan[addD(date,i)];if(d)Object.values(d.m).forEach(id=>set.add(id));}return set;}
+function calcF(day){const sum=activeSlots().reduce((a,s)=>a+(RB[day.m[s]]?RB[day.m[s]].k:0),0);day.f=sum?clamp(Math.round(target()/sum*20)/20,0.75,1.5):1;}
+function genDay(date){
+  const slots=activeSlots(),T=target(),rec=recentIds(date);let best=null;
+  const old=S.plan[date],keep={};
+  if(old)for(const s of slots){if(((old.lock&&old.lock[s])||old.done[s]||(old.skip&&old.skip[s]))&&RB[old.m[s]])keep[s]=old.m[s];}
+  for(let t=0;t<80;t++){
+    const m={};let sum=0,pen=0;
+    for(const s of slots){if(keep[s]){m[s]=keep[s];sum+=RB[keep[s]].k;continue;}const p=pool(s);if(!p.length)continue;const x=rnd(p);m[s]=x.id;sum+=x.k;if(rec.has(x.id))pen+=60;if(S.fav.includes(x.id))pen-=25;}
+    const sc=Math.abs(sum-T)+pen+Math.random()*30;
+    if(!best||sc<best.sc)best={m,sc};
+  }
+  const sub={},left={};Object.keys(keep).forEach(k=>{if(old.sub&&old.sub[k])sub[k]=old.sub[k];if(old.left&&old.left[k])left[k]=true;});
+  const day={m:best.m,f:1,done:(old&&old.done)||{},ex:(old&&old.ex)||[],water:(old&&old.water)||0,lock:(old&&old.lock)||{},sub,left,skip:(old&&old.skip)||{},out:(old&&old.out)||{},free:old?old.free:false,freeK:old?old.freeK:0};
+  calcF(day);S.plan[date]=day;return day;
+}
+function getDay(date){
+  let d=S.plan[date];if(!d)d=genDay(date);
+  let ch=false;
+  for(const s of activeSlots()){if(!RB[d.m[s]]){const p=pool(s);if(p.length){d.m[s]=rnd(p).id;ch=true;}}}
+  if(ch)calcF(d);return d;
+}
+function dayKcal(d){let k=0;for(const s of activeSlots()){if(d.done[s]&&RB[d.m[s]])k+=RB[d.m[s]].k*mf(d,s);}d.ex.forEach(e=>k+=+e.k||0);return Math.round(k);}
+function dayProt(d){let p=0;for(const s of activeSlots()){if(d.done[s]&&RB[d.m[s]])p+=RB[d.m[s]].p*mf(d,s);}return Math.round(p);}
+function daySoy(d){let n=0;for(const s of activeSlots()){if(d.done[s]&&RB[d.m[s]]&&RB[d.m[s]].soy)n++;}d.ex.forEach(e=>{if(e.soy)n++;});return n;}
+function dayPlanK(d){return Math.round(activeSlots().reduce((a,s)=>a+(RB[d.m[s]]&&!(d.skip&&d.skip[s])?RB[d.m[s]].k*mf(d,s):0),0));}
+
+/* ============ ZOBRAZENÍ ============ */
+let tab='dnes',cur=TODAY(),wo=0;
+const TABS=[['dnes','Dnes'],['tyden','Týden'],['nakup','Nákup'],['pokrok','Pokrok a zpráva'],['recepty','Recepty'],['nast','Nastavení']];
+function render(){
+  $('#nav').innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+  const f={dnes:vDnes,tyden:vTyden,nakup:vNakup,pokrok:vPokrok,recepty:vRecepty,nast:vNast}[tab];
+  $('#main').innerHTML=f();save();
+}
+function soyBadge(x){return x.soy===1?'<span class="soy">obsahuje sóju</span>':x.soy===2?'<span class="soy">může obsahovat sóju</span>':'';}
+function chips(x,f,d,s){return ingList(x,d,s).map(i=>{const u=(ING[i.n]||'X').split('/')[1]||'g';const q=u==='ks'?Math.max(1,Math.round(i.q*f)):Math.round(i.q*f);return `<span class="chip"${i.n!==i.o?' style="background:var(--warn2);color:var(--warn)"':''}>${i.n} ${q} ${u}</span>`;}).join('');}
+
+function vDnes(){
+  if(!S.pf.sex||!S.pf.age||!S.pf.h||!S.pf.w){return `<div class="card"><h2>Vítejte</h2><p>Aby aplikace spočítala, kolik můžete denně sníst, vyplňte prosím pár údajů (zabere to minutu).</p><button class="b" data-a="tab" data-v="nast">Vyplnit údaje</button></div>`;}
+  const d=getDay(cur),T=dayTarget(d),k=dayKcal(d),pct=Math.min(100,Math.round(k/T*100));
+  const tip=TIPS[(parse(cur).getDate()+parse(cur).getMonth())%TIPS.length];
+  const sl=activeSlots();
+  const cups=Array.from({length:waterGoal()},(_,i)=>`<span class="cup ${i<d.water?'f':''}"></span>`).join('');
+  const soyWeek=weekSoy(cur);
+  let h=`<div class="row" style="justify-content:space-between;margin-bottom:8px"><button class="b s" data-a="day" data-v="-1">&lt; Včera</button><h2 style="margin:0">${fmt(cur)}${cur===TODAY()?' (dnes)':''}</h2><button class="b s" data-a="day" data-v="1">Zítra &gt;</button></div>
+  <div class="tip">${tip}</div>${dayTools(d)}${alertsHtml(dayAlerts(cur))}
+  <div class="card"><div class="row" style="justify-content:space-between"><b>Snězeno: ${k} kcal z ${T}</b><span class="muted">Bílkoviny: ${dayProt(d)} g</span></div>
+  <div class="bar" style="margin:6px 0"><i class="${k>T?'over':''}" style="width:${pct}%"></i></div>
+  <div class="muted">Plán na tento den: ${dayPlanK(d)} kcal${d.f!==1?` (porce ×${String(d.f).replace('.',',')}, ke všem množstvím přidejte ${Math.round((d.f-1)*100)} %)`:''}</div>
+  <h3 style="margin-top:12px">Pití: ${d.water} z ${waterGoal()} sklenic (á 2,5 dl)</h3><div class="cups">${cups}</div>
+  <div class="row"><button class="b s sm" data-a="water" data-v="1">+ sklenice</button><button class="b s sm" data-a="water" data-v="-1">- sklenice</button>
+  <span class="${soyWeek?'soy':'nosoy'}" style="margin-left:auto">Sója za posledních 7 dní: ${soyWeek} jídel</span></div></div>`;
+  for(const s of sl){
+    const x=RB[d.m[s]];if(!x)continue;const dn=d.done[s],sk=d.skip&&d.skip[s],fz=mf(d,s);
+    if(sk){h+=`<div class="card meal" style="opacity:.75"><div class="slot">${slotName(s)}</div><div class="mname"><s>${esc(x.n)}</s></div><div class="muted">${d.out&&d.out[s]?'Jídlo mimo domov, zapsáno níže mezi „navíc“.':'Vynecháno, zbylá jídla jsou upravená, aby den vyšel.'}</div><div class="row" style="margin-top:8px"><button class="b s sm" data-a="unskip" data-v="${s}">Vrátit zpět</button></div></div>`;continue;}
+    h+=`<div class="card meal ${dn?'done':''}"><div class="slot">${slotName(s)}</div><div class="mname">${esc(x.n)}</div>
+    <div class="muted">${Math.round(x.k*fz)} kcal, bílkoviny ${Math.round(x.p*fz)} g, asi ${mealCost(x,d,s)} Kč ${soyBadge(x)} ${leftNote(d,s)}${d.ff&&d.ff[s]&&d.ff[s]!==d.f?` <span class="soy">porce ×${String(d.ff[s]).replace('.',',')}</span>`:''}</div>
+    ${subNote(d,s)}<div class="hide" id="ing-${s}">${chips(x,fz,d,s)}</div>
+    <div class="row" style="margin-top:8px"><button class="b ${dn?'s':''}" data-a="done" data-v="${s}">${dn?'Snězeno v '+dn+' (zrušit)':'Snědl/a jsem to'}</button>
+    <button class="b s sm" data-a="swap" data-v="${s}">Změnit jídlo</button><button class="b s sm" data-a="subm" data-v="${s}">Záměna suroviny</button><button class="b s sm" data-a="ing" data-v="${s}">Suroviny</button><button class="b ${d.lock&&d.lock[s]?'w':'x'} sm" data-a="lock" data-v="${s}">${d.lock&&d.lock[s]?'Zamčeno (neměnit)':'Zamknout'}</button>${s==='ob'||s==='ve'?`<button class="b s sm" data-a="cook2" data-v="${s}">Uvařit na 2 dny</button>`:''}
+    ${dn?'':`<button class="b x sm" data-a="skipm" data-v="${s}">Nestihl/a jsem</button><button class="b x sm" data-a="outm" data-v="${s}">Jím mimo domov</button>`}</div></div>`;
+  }
+  h+=`<div class="card"><h3>Jedl/a jsem něco jiného nebo navíc</h3>
+  <div class="row"><input id="exn" placeholder="Co to bylo" style="flex:2;min-width:160px"><input id="exk" type="number" placeholder="kcal (odhad)" style="width:130px"><label><input type="checkbox" id="exs"> sója</label><button class="b" data-a="addex">Přidat</button></div>
+  <p class="muted">Nevíte kolik kcal? Malá sušenka 50, kus koláče 300, pivo 0,5 l 220, hranolky velké 450, čokoládová tyčinka 250.</p>`;
+  h+=d.ex.map((e,i)=>`<div class="row" style="border-top:1px solid var(--line);padding:6px 0">${esc(e.n)} - ${e.k} kcal ${e.soy?'<span class="soy">sója</span>':''}<button class="b x sm" style="margin-left:auto" data-a="delex" data-v="${i}">smazat</button></div>`).join('');
+  h+=`</div><div class="card"><h3>Dnešní váha</h3><div class="row"><input id="qw" type="number" step="0.1" placeholder="kg" style="width:110px"><button class="b" data-a="qwt">Zapsat váhu</button><button class="b w" data-a="regen">Vymyslet den znovu</button></div></div>`;
+  return h;
+}
+function leftNote(d,s){if(d.left&&d.left[s])return '<span class="nosoy">zbytek z včerejška, stačí ohřát</span>';const n=S.plan[addD(cur,1)];return n&&n.left&&n.left[s]&&n.m[s]===d.m[s]?'<span class="nosoy">vaří se na 2 dny (zítra zbytek)</span>':'';}
+function subNote(d,s){const e=Object.entries((d.sub&&d.sub[s])||{});return e.length?`<div class="soy" style="display:inline-block;margin:4px 0">Záměna: ${e.map(([a,b])=>a+' &rarr; '+b).join(', ')}</div>`:'';}
+function weekSoy(date){let n=0;for(let i=0;i<7;i++){const d=S.plan[addD(date,-i)];if(d)n+=daySoy(d);}return n;}
+
+function vTyden(){
+  const t=addD(TODAY(),7*wo);ensureSmart(t);let h=weekNav()+`<div class="row" style="justify-content:space-between"><h2>${wo?'Týden od '+fmtS(t):'Příštích 7 dní'}</h2><div class="row noprint"><button class="b s" data-a="print">Vytisknout</button><button class="b w" data-a="regenweek">Vymyslet chytrý týden</button></div></div>${weekAlerts(t)}<div class="days">`;
+  for(let i=0;i<7;i++){const dt=addD(t,i),d=getDay(dt);
+    h+=`<div class="card day ${i===0&&!wo?'today':''}"><b>${fmt(dt)}</b> <span class="muted">${dayPlanK(d)} kcal, ~${dayCost(d)} Kč</span><ul>${activeSlots().map(s=>RB[d.m[s]]?`<li><span class="muted">${slotName(s).replace(' svačina','')}:</span> ${esc(RB[d.m[s]].n.split(',')[0].replace(/\s*\(.*?\)/g,''))}${RB[d.m[s]].soy?' <span class="soy">sója</span>':''}</li>`:'').join('')}</ul>
+    <div class="row"><button class="b s sm" data-a="open" data-v="${dt}">Otevřít</button><button class="b s sm" data-a="regenday" data-v="${dt}">Jiný den</button><button class="b ${d.free?'w':'x'} sm" data-a="freeday" data-v="${dt}">${d.free?'Volnější den':'Volnější den?'}</button></div></div>`;}
+  return h+'</div><p class="muted">Týden je sestavený chytře: jídla se vybírají tak, aby se použilo málo druhů surovin, maso se koupilo ve větším balení a vyšlo na víc jídel (a ne každý den jiné maso). Zamknutá a už snědená jídla se nemění. Kdykoli můžete jídlo nebo surovinu změnit, nákup se přepočítá.</p>';
+}
+
+function weekNav(){return `<div class="row noprint" style="margin-bottom:8px"><button class="b s sm" data-a="wk" data-v="-1" ${wo?'':'disabled'}>&lt; Předchozí týden</button><b>${wo?'Týden od '+fmtS(addD(TODAY(),7*wo)):'Tento týden'}</b><button class="b s sm" data-a="wk" data-v="1" ${wo>=8?'disabled':''}>Další týden &gt;</button></div>`;}
+/* ============ CHYTRÝ NÁKUP ============ */
+/* balení v obchodě (g, ml nebo ks), co je drobné a kupuje se na váhu, má 100 */
+const PACK={'Kuřecí maso':500,'Krůtí maso':500,'Krůtí šunka':100,'Šunka':100,'Vepřová panenka':500,'Hovězí maso':500,'Mleté maso':500,'Králík':1000,'Krůtí stehno':600,'Losos':250,'Pstruh':300,'Tuňák':160,'Sumeček africký':400,'Rybí filé':400,
+'Ricotta':250,'Tvaroh':250,'Bílý jogurt':400,'Ovocný jogurt':150,'Ovocný tvaroh':130,'Cottage':180,'Lučina':140,'Tvrdý sýr':200,'Plátkový sýr':100,'Mozzarella':125,'Feta':150,'Zakysaná smetana':200,'Pomazánkové máslo':250,'Kefír':500,'Mléko':1000,'Vejce':10,
+'Žitný chléb':500,'Špaldový chléb':500,'Celozrnný chléb':500,'Kváskový chléb':500,'Pohankový chléb':400,'Celozrnný toustový chléb':500,'Žitný dalamánek':240,'Špaldový rohlík':300,'Sójový rohlík':300,'Rýžový chlebíček':12,'Žitné pečivo':300,'Celozrnné pečivo':300,'Celozrnná špaldová mouka':1000,'Obiloviny na kaši':500,'Pohanka':500,'Rýže natural':500,'Rýže basmati':500,'Divoká rýže':250,'Quinoa':250,'Celozrnný kuskus':500,'Celozrnné těstoviny':500,'Rýžové nudle':250,
+'Salát':150,'Špenát':300,'Brokolice':500,'Květák':800,'Cuketa':300,'Zelené fazolky':400,'Hrášek':450,'Celer':400,'Kedlubna':300,'Zelí':1000,'Cibule':500,'Česnek':50,'Žampiony':250,'Hlíva ústřičná':300,'Fenykl':300,'Dýně':1000,'Červená řepa':500,'Brambory':1000,'Bílá ředkev':300,'Bylinky':30,'Mrkev':500,'Paprika':200,'Okurka':300,'Pórek':200,'Ředkvičky':150,'Ledový salát':400,'Ananas':800,'Meloun':1500,'Jahody':250,
+'Bílé fazole':500,'Fazole adzuki':500,'Tofu':200,'Proteinová tyčinka':1,'Proteinový koktejl':250,'Med':250,'Olivový olej':500,'Hořčice':100,'Javorový sirup':250,'Jablečné pyré':360};
+/* trvanlivost po nákupu ve dnech */
+const SHELF={'Kuřecí maso':2,'Krůtí maso':2,'Krůtí šunka':5,'Šunka':5,'Vepřová panenka':2,'Hovězí maso':3,'Mleté maso':1,'Králík':2,'Krůtí stehno':2,'Losos':1,'Pstruh':1,'Tuňák':365,'Sumeček africký':90,'Rybí filé':90,
+'Ricotta':5,'Tvaroh':7,'Bílý jogurt':7,'Ovocný jogurt':10,'Ovocný tvaroh':7,'Cottage':7,'Lučina':14,'Tvrdý sýr':21,'Plátkový sýr':14,'Mozzarella':7,'Feta':14,'Zakysaná smetana':10,'Pomazánkové máslo':30,'Kefír':7,'Mléko':7,'Vejce':21,
+'Žitný chléb':4,'Špaldový chléb':4,'Celozrnný chléb':4,'Kváskový chléb':4,'Pohankový chléb':4,'Celozrnný toustový chléb':6,'Žitný dalamánek':2,'Špaldový rohlík':2,'Sójový rohlík':2,'Rýžový chlebíček':90,'Žitné pečivo':3,'Celozrnné pečivo':3,
+'Rajče':6,'Paprika':7,'Okurka':6,'Mrkev':14,'Pórek':10,'Ředkvičky':5,'Salát':4,'Ledový salát':6,'Špenát':3,'Brokolice':5,'Květák':6,'Cuketa':7,'Zelené fazolky':4,'Hrášek':90,'Celer':21,'Kedlubna':10,'Zelí':21,'Cibule':30,'Česnek':30,'Žampiony':5,'Hlíva ústřičná':4,'Fenykl':6,'Dýně':20,'Červená řepa':14,'Rukola':3,'Brambory':30,'Bílá ředkev':14,'Zelenina':6,'Bylinky':5,'Zelný salát':7,'Kukuřice':90,
+'Ovoce':5,'Jablko':14,'Ananas':5,'Mandarinka':10,'Meloun':5,'Jahody':2,'Pomeranč':14,'Tofu':7,'Jablečné pyré':14};
+const FRZ=new Set(['Kuřecí maso','Krůtí maso','Krůtí stehno','Králík','Vepřová panenka','Hovězí maso','Mleté maso','Losos','Pstruh','Žitný chléb','Špaldový chléb','Celozrnný chléb','Kváskový chléb','Pohankový chléb','Celozrnný toustový chléb','Žitné pečivo','Celozrnné pečivo','Špaldový rohlík','Žitný dalamánek','Špenát','Brokolice']);
+const MEAT=new Set(['Kuřecí maso','Krůtí maso','Králík','Krůtí stehno','Vepřová panenka','Hovězí maso','Mleté maso','Losos','Pstruh','Sumeček africký','Rybí filé','Tuňák']);
+const FISH=new Set(['Losos','Pstruh','Sumeček africký','Rybí filé','Tuňák']);
+const GRAINS=new Set(['Rýže natural','Rýže basmati','Divoká rýže','Quinoa','Pohanka','Celozrnný kuskus','Celozrnné těstoviny','Brambory']);
+const DSH=['ne','po','út','st','čt','pá','so'],SSH={sn:'snídaně',ds:'svačina',ob:'oběd',os:'svačina',ve:'večeře',v2:'2. večeře'};
+const packOf=n=>PACK[n]||100;
+const durable=n=>(SHELF[n]||7)>=30||FRZ.has(n);
+function tripDays(){return +S.set.trips===1?[0]:[0,+S.set.t1||4];}
+/* rozdělí spotřebu surovin mezi nákupy: trvanlivé najednou, čerstvé až později */
+function allocate(uses){
+  const T=tripDays(),res=[];
+  Object.keys(uses).forEach(n=>{
+    const us=uses[n],sh=SHELF[n]||7,fr=FRZ.has(n),mn=Math.min(...us.map(u=>u.i)),mx=Math.max(...us.map(u=>u.i));
+    let k0=0;for(let k=0;k<T.length;k++)if(T[k]<=mn)k0=k;
+    const bk={};const put=(ti,u,fl)=>{const b=bk[ti]=bk[ti]||{n,ti,q:0,uses:[],fl:''};b.q+=u.q;b.uses.push(u);if(fl)b.fl=fl;};
+    if(mx-T[k0]<=sh)us.forEach(u=>put(k0,u,''));
+    else us.forEach(u=>{let ti=-1;for(let k=T.length-1;k>=0;k--){if(T[k]<=u.i&&u.i-T[k]<=sh){ti=k;break;}}
+      if(ti>=0)put(ti,u,'');else if(fr)put(0,u,'freeze');else put(T.length,u,'fresh');});
+    Object.values(bk).forEach(b=>res.push(b));
+  });
+  return res;
+}
+/* cena týdne pro optimalizaci: útrata za balení + zbytky + pokuty za roztříštěnost */
+function weekScore(dates,fishOk){
+  const uses={},cnt={},mc={},mset=new Set();let pen=0,fishM=0;
+  dates.forEach((dt,i)=>{const d=S.plan[dt];if(!d)return;pen+=Math.abs(d.f-1)*300;
+    activeSlots().forEach(s=>{const x=RB[d.m[s]];if(!x||(d.skip&&d.skip[s]))return;cnt[x.id]=(cnt[x.id]||0)+1;if(S.fav.includes(x.id))pen-=10;
+      let fish=false;ingList(x,d,s).forEach(g=>{(uses[g.n]=uses[g.n]||[]).push({i:(d.left&&d.left[s])?Math.max(0,i-1):i,q:g.q*mf(d,s),s,dt});if(FISH.has(g.n))fish=true;if(MEAT.has(g.n))mset.add(g.n);});mset.forEach(n=>mc[n]=(mc[n]||0)+1);mset.clear();
+      if(fish)fishM++;if(d.sub&&d.sub[s])pen+=6*Object.keys(d.sub[s]).length;
+      const pd=S.plan[addD(dt,-1)];if(pd&&pd.m[s]===x.id&&!(d.left&&d.left[s]))pen+=30;});});
+  Object.keys(cnt).forEach(id=>{const x=RB[id],lim=(x&&(x.s==='ob'||x.s==='ve'))?2:3;if(cnt[id]>lim)pen+=120*(cnt[id]-lim);});Object.values(mc).forEach(c=>{if(c>4)pen+=50*(c-4);});
+  let money=0;const names=new Set(),meats=new Set();
+  allocate(pruneUses(applyPantry(uses,dates[0]).uses)).forEach(b=>{const pk=packOf(b.n),bought=Math.max(1,Math.ceil(b.q/pk-0.001))*pk;money+=cost(b.n,b.q)+(durable(b.n)?0.3:1)*cost(b.n,bought-b.q);names.add(b.n);if(MEAT.has(b.n))meats.add(b.n);if(b.fl==='freeze')pen+=15;if(b.fl==='fresh')pen+=40;});
+  pen+=names.size*8;if(meats.size>3)pen+=150*(meats.size-3);if(fishOk&&fishM<2)pen+=100*(2-fishM);
+  return money+pen;
+}
+function snapState(dates){const o={};dates.forEach(dt=>{const d=S.plan[dt];if(d)o[dt]={m:Object.assign({},d.m),sub:JSON.parse(JSON.stringify(d.sub||{})),f:d.f};});return o;}
+function restoreState(st){Object.keys(st).forEach(dt=>{const d=S.plan[dt];d.m=Object.assign({},st[dt].m);d.sub=JSON.parse(JSON.stringify(st[dt].sub));d.f=st[dt].f;});}
+function optimizeWeek(base,incToday){
+  const dates=Array.from({length:7},(_,i)=>addD(base,i)),t=TODAY(),slots=activeSlots();
+  dates.forEach(dt=>getDay(dt));
+  const cands=[];dates.forEach(dt=>{if(dt<t||(dt===t&&!incToday))return;const d=S.plan[dt];slots.forEach(s=>{if((d.lock&&d.lock[s])||d.done[s]||(d.left&&d.left[s])||(d.skip&&d.skip[s]))return;cands.push([dt,s]);});});
+  if(!cands.length)return;
+  const PL={};slots.forEach(s=>PL[s]=pool(s));
+  const fishOk=R.some(x=>!x.soy&&x.ing.split(',').some(i=>FISH.has(i.replace(/ \d+$/,''))));
+  let curS=weekScore(dates,fishOk),best=curS,bestSt=snapState(dates);const N=2500;
+  for(let it=0;it<N;it++){
+    const temp=6*(1-it/N)+0.3,c=rnd(cands),dt=c[0],s=c[1],d=S.plan[dt];
+    const oldM=d.m[s],oldSub=d.sub&&d.sub[s]?Object.assign({},d.sub[s]):null,oldF=d.f;
+    if(Math.random()<0.7){const p=PL[s].filter(x=>x.id!==oldM);if(!p.length)continue;d.m[s]=rnd(p).id;if(d.sub)delete d.sub[s];}
+    else{const x=RB[oldM];if(!x)continue;const gs=ingList(x,d,s).filter(g=>SUB[g.o]&&'MP'.includes((ING[g.o]||'X')[0]));if(!gs.length)continue;
+      const g=rnd(gs),opts=SUB[g.o].filter(n=>!S.noing.includes(n)).concat([g.o]),pick=rnd(opts);
+      d.sub=d.sub||{};d.sub[s]=d.sub[s]||{};if(pick===g.o)delete d.sub[s][g.o];else d.sub[s][g.o]=pick;}
+    calcF(d);const sc=weekScore(dates,fishOk),dl=sc-curS;
+    if(dl<=0||Math.random()<Math.exp(-dl/temp)){curS=sc;if(sc<best){best=sc;bestSt=snapState(dates);}}
+    else{d.m[s]=oldM;if(oldSub)d.sub[s]=oldSub;else if(d.sub)delete d.sub[s];d.f=oldF;}
+  }
+  restoreState(bestSt);
+}
+function ensureSmart(t){S.smart=S.smart||{};if(!S.smart[t]){optimizeWeek(t,false);S.smart[t]=1;}}
+function fmtAmt(n,q){const u=unitOf(n);if(u==='ks')return Math.ceil(q-0.001)+' ks';if(u==='ml')return q>=1000?(Math.round(q/100)/10+' l').replace('.',','):Math.round(q/10)*10+' ml';return q>=1000?(Math.round(q/10)/100+' kg').replace('.',','):Math.max(5,Math.round(q/5)*5)+' g';}
+const dayTag=dt=>{const w=DSH[parse(dt).getDay()];return w[0].toUpperCase()+w.slice(1);};
+
+function vNakup(){
+  const t=addD(TODAY(),7*wo);ensureSmart(t);const sel=S.shop.days||[0,1,2,3,4,5,6],T=tripDays();
+  let h=weekNav()+`<h2>Chytrý nákup</h2><div class="card"><div class="muted">Za které dny nakupujete:</div><div class="row">`;
+  for(let i=0;i<7;i++){const dt=addD(t,i);h+=`<label><input type="checkbox" data-a="shopday" data-v="${i}" ${sel.includes(i)?'checked':''}> ${fmt(dt).split(' ')[0]} ${fmtS(dt)}</label>`;}
+  h+='</div></div>';
+  const SD=shopData(t,sel),uses0=SD.uses0,uses=SD.uses,al=SD.al;let total=0,waste=0;const byTrip={};
+  al.forEach(b=>{const pk=packOf(b.n);b.pk=pk;b.np=Math.max(1,Math.ceil(b.q/pk-0.001));b.bought=b.np*pk;b.c=cost(b.n,b.bought);total+=b.c;waste+=cost(b.n,b.bought-b.q)*(durable(b.n)?0.3:1);(byTrip[b.ti]=byTrip[b.ti]||[]).push(b);});
+  const names=Object.keys(uses),meats=names.filter(n=>MEAT.has(n));
+  h+=`<div class="tip"><b>Souhrn:</b> ${names.length} druhů surovin, z toho ${meats.length} druhů masa a ryb (${meats.join(', ')||'žádné'}). Odhad útraty <b>~${Math.round(total)} Kč</b>, z toho nevyužité zbytky za ~${Math.round(waste)} Kč.
+  <div class="row noprint" style="margin-top:8px"><button class="b w sm" data-a="regenweek">Vymyslet chytrý týden znovu (méně surovin)</button></div></div>`;
+  h+=pantryCard(SD);
+  const tips=[];
+  Object.keys(uses0).forEach(n=>{const us=uses0[n];if(us.length<2)return;const days=[...new Set(us.map(u=>dayTag(u.dt)+' '+SSH[u.s]))].join(', ');const q=us.reduce((a,u)=>a+u.q,0);
+    if(MEAT.has(n))tips.push([us.length,`<b>${n}</b>: použijete ${us.length}x (${days}). Kupte ${fmtAmt(n,Math.ceil(q/packOf(n))*packOf(n))}. ${Math.max(...us.map(u=>u.i))-Math.min(...us.map(u=>u.i))<=2?'Uvařte najednou na všechna jídla.':'Část hned po nákupu zamrazte, ať se nezkazí, a rozmrazujte podle dne.'}`]);
+    else if(GRAINS.has(n))tips.push([us.length-0.5,`<b>${n}</b>: uvařte najednou na ${us.length} jídla (celkem ${fmtAmt(n,q)} syrové). Uvařené vydrží 3 dny v lednici.`]);});
+  tips.sort((a,b)=>b[0]-a[0]);
+  if(tips.length)h+=`<div class="card"><h3>Ušetřete čas při vaření</h3>${tips.slice(0,6).map(x=>`<div class="al i">${x[1]}</div>`).join('')}</div>`;
+  const labels=k=>k<T.length?`Nákup ${k+1}: ${fmt(addD(t,T[k]))}`+(k===0&&T.length>1?' (velký, trvanlivé věci)':k>0?' (doplnění čerstvého)':''):'Čerstvé doplnit těsně před vařením';
+  Object.keys(byTrip).map(Number).sort().forEach(k=>{
+    h+=`<div class="card shop"><h3>${labels(k)}</h3>`;
+    const g={};byTrip[k].forEach(b=>{const c=(ING[b.n]||'X')[0];(g[c]=g[c]||[]).push(b);});
+    Object.keys(CAT).forEach(c=>{if(!g[c])return;h+=`<h4>${CAT[c]}</h4><ul>`;
+      g[c].sort((a,b)=>a.n.localeCompare(b.n,'cs')).forEach(b=>{const key=b.n+'|'+k,ck=S.shop.ck&&S.shop.ck[key];
+        const us=[...new Set(b.uses.sort((x,y)=>x.i-y.i).map(u=>dayTag(u.dt)+' '+SSH[u.s]))],left=b.bought-b.q;
+        h+=`<li class="${ck?'ck':''}"><label><input type="checkbox" data-a="shopck" data-v="${esc(key)}" ${ck?'checked':''}><b>${b.n}</b>: koupit ${fmtAmt(b.n,b.bought)}${b.np>1&&b.pk>=100?' ('+b.np+' x '+fmtAmt(b.n,b.pk)+')':''} <span class="muted">~${Math.round(b.c)} Kč</span></label>
+        <div class="muted" style="margin-left:28px">potřeba ${fmtAmt(b.n,b.q)}, použije se: ${us.slice(0,7).join(', ')}${left>b.pk*0.15&&b.pk>=100?'; zbyde asi '+fmtAmt(b.n,left):''}${b.fl==='freeze'?' <span class="soy">část zamrazte</span>':''}${b.fl==='fresh'?' <span class="soy">kupte čerstvé</span>':''}</div></li>`;});
+      h+='</ul>';});
+    h+='</div>';});
+  h+=`<div class="row noprint"><button class="b s" data-a="print">Vytisknout</button><button class="b s" data-a="shopshare">Poslat / zkopírovat seznam</button><button class="b x" data-a="shopreset">Odškrtnout vše</button></div><p class="muted">Množství jsou zaokrouhlená na běžná balení v obchodě. Základní věci (sůl, koření, olej na vaření) v seznamu nejsou. Počet nákupů a dny nastavíte v Nastavení.</p>`;
+  return h;
+}
+
+function vRecepty(){
+  const f=S.rf||{s:'all',q:''};
+  let h=`<h2>Recepty</h2>${fridgeCard()}<div class="card"><div class="row"><button class="b" data-a="customm">+ Vlastní recept</button><button class="b s" data-a="impm">Nahrát jídelníček od specialisty (Word)</button></div></div><div class="card"><div class="row"><select data-a="rfs"><option value="all">Všechna jídla</option>${SL.map(x=>`<option value="${x[0]}" ${f.s===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select><input id="rq" placeholder="Hledat (např. kuře, vejce)" value="${esc(f.q)}" data-a="rfq"></div><p class="muted">Srdíčko = mám rád, jídlo se bude zařazovat častěji. Křížek = nechci, jídlo se už nikdy nenavrhne.</p></div>`;
+  const q=f.q.toLowerCase();
+  const list=R.filter(x=>(f.s==='all'||x.s===f.s)&&(!q||x.n.toLowerCase().includes(q)));
+  h+='<div class="card">'+list.map(x=>`<div class="pick" style="cursor:default;${S.ban.includes(x.id)?'opacity:.45':''}"><div><div class="slot">${slotName(x.s)}</div>${esc(x.n)}<div class="muted">${x.k} kcal, bílkoviny ${x.p} g ${soyBadge(x)}</div></div><div class="row" style="flex-wrap:nowrap"><button class="b ${S.fav.includes(x.id)?'':'s'} sm" data-a="fav" data-v="${x.id}">&#9829;</button><button class="b ${S.ban.includes(x.id)?'':'x'} sm" data-a="ban" data-v="${x.id}">&#10005;</button>${x.id[0]==='u'?`<button class="b w sm" data-a="delcustom" data-v="${x.id}">smazat</button>`:''}</div></div>`).join('')+'</div>';
+  return h;
+}
+
+function vPokrok(){
+  const W=S.wt,goal=+S.pf.goal;
+  let h=`<h2>Pokrok</h2>${weekEvalCard()}<div class="card noprint"><h3>Zapsat váhu</h3><div class="row"><input type="date" id="wd" value="${TODAY()}"><input id="ww" type="number" step="0.1" placeholder="váha (kg)" style="width:120px"><input id="wc" type="number" step="0.5" placeholder="pas (cm), nepovinné" style="width:170px"><button class="b" data-a="addw">Uložit</button></div></div>`;
+  h+=`<div class="card">${chart(W,goal)}`;
+  if(W.length){const a=W[0],b=W[W.length-1],ch=b.w-a.w,days=(parse(b.d)-parse(a.d))/864e5;
+    h+=`<div class="grid" style="margin-top:8px"><div><div class="muted">Start</div><b>${a.w} kg</b> (${fmtS(a.d)})</div><div><div class="muted">Teď</div><b>${b.w} kg</b></div><div><div class="muted">Změna</div><b>${(ch>0?'+':'')+ch.toFixed(1).replace('.',',')} kg</b></div>${goal?`<div><div class="muted">Do cíle ${goal} kg</div><b>${Math.max(0,b.w-goal).toFixed(1).replace('.',',')} kg</b></div>`:''}${+S.pf.h?`<div><div class="muted">BMI</div><b>${(b.w/Math.pow(S.pf.h/100,2)).toFixed(1).replace('.',',')}</b></div>`:''}</div>`;
+    if(goal&&b.w>goal){const rate=days>=7&&ch<-0.2?-ch/(days/7):0.5;const wk=(b.w-goal)/rate;h+=`<p class="muted">Při tempu ${rate.toFixed(2).replace('.',',')} kg za týden to vychází na ${fmtS(addD(TODAY(),Math.round(wk*7)))} ${parse(addD(TODAY(),Math.round(wk*7))).getFullYear()}.</p>`;}
+  }
+  h+='</div>';
+  const per=+(S.rp||7);
+  h+=`<div class="card"><div class="row noprint" style="justify-content:space-between"><h3 style="margin:0">Zpráva pro výživového specialistu</h3><div class="row"><select data-a="rper"><option value="7" ${per===7?'selected':''}>7 dní</option><option value="14" ${per===14?'selected':''}>14 dní</option><option value="30" ${per===30?'selected':''}>30 dní</option></select><button class="b" data-a="print">Vytisknout / uložit PDF</button></div></div>`;
+  h+=report(per)+'</div>';h+=monthCard();
+  return h;
+}
+function report(per){
+  const t=TODAY();let rows='',nd=0,kc=0,wsum=0,wn=0,soy=0,eatenM=0,planM=0;
+  for(let i=per-1;i>=0;i--){const dt=addD(t,-i),d=S.plan[dt];if(!d)continue;
+    const sl=activeSlots(),eaten=sl.filter(s=>d.done[s]),k=dayKcal(d);
+    if(!eaten.length&&!d.ex.length&&!d.water)continue;
+    nd++;kc+=k;wsum+=d.water;wn++;soy+=daySoy(d);eatenM+=eaten.length;planM+=sl.length;
+    const items=eaten.map(s=>`${d.done[s]} ${slotName(s).toLowerCase()}: ${esc(RB[d.m[s]].n.split(',')[0].replace(/\s*\(.*?\)/g,''))}`).concat(d.ex.map(e=>`navíc: ${esc(e.n)} (${e.k} kcal)`));
+    rows+=`<tr><td>${fmt(dt)}</td><td>${items.join('<br>')}</td><td>${k}</td><td>${d.water}</td></tr>`;}
+  const wts=S.wt.filter(w=>w.d>=addD(t,-per+1));
+  let sum=`<p>${S.pf.name?'<b>'+esc(S.pf.name)+'</b>, ':''}období posledních ${per} dní. Denní cíl: <b>${target()} kcal</b>. `;
+  if(nd)sum+=`Zapsaných dní: <b>${nd}</b>, průměr snězeno: <b>${Math.round(kc/nd)} kcal</b>, splněno jídel z plánu: <b>${Math.round(eatenM/planM*100)} %</b>, průměr pití: <b>${(wsum/wn).toFixed(1).replace('.',',')} sklenic</b>, jídel se sójou: <b>${soy}</b>. `;
+  if(wts.length>1)sum+=`Váha: ${wts[0].w} kg &rarr; ${wts[wts.length-1].w} kg (${(wts[wts.length-1].w-wts[0].w>0?'+':'')+(wts[wts.length-1].w-wts[0].w).toFixed(1).replace('.',',')} kg). `;
+  else if(wts.length===1)sum+=`Poslední váha: ${wts[0].w} kg. `;
+  sum+='</p>';
+  if(!rows)return sum+'<p class="muted">V tomto období zatím nejsou zapsaná žádná jídla. Na stránce Dnes klepněte na „Snědl/a jsem to“.</p>';
+  return sum+`<table><tr><th>Den</th><th>Co jsem jedl/a (čas)</th><th>kcal</th><th>Sklenic</th></tr>${rows}</table>`;
+}
+function chart(W,goal){
+  if(!W.length)return '<p class="muted">Zatím žádné zapsané váhy. Zapište první a objeví se graf.</p>';
+  const w=600,h=220,p=38,vals=W.map(x=>x.w).concat(goal?[goal]:[]);let mn=Math.floor(Math.min(...vals)-1),mx=Math.ceil(Math.max(...vals)+1);
+  const t0=parse(W[0].d).getTime(),t1=Math.max(parse(W[W.length-1].d).getTime(),t0+864e5*6);
+  const X=d=>p+(parse(d).getTime()-t0)/(t1-t0)*(w-p-12),Y=v=>h-24-(v-mn)/(mx-mn)*(h-24-14);
+  let s=`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">`;
+  for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4,y=Y(v);s+=`<line x1="${p}" x2="${w-6}" y1="${y}" y2="${y}" stroke="#e2e0d6"/><text x="4" y="${y+4}" font-size="11" fill="#6b7770">${v.toFixed(0)}</text>`;}
+  if(goal)s+=`<line x1="${p}" x2="${w-6}" y1="${Y(goal)}" y2="${Y(goal)}" stroke="#b4541a" stroke-dasharray="5 4"/><text x="${w-90}" y="${Y(goal)-4}" font-size="11" fill="#b4541a">cíl ${goal} kg</text>`;
+  s+=`<polyline fill="none" stroke="#2f7d4f" stroke-width="3" points="${W.map(x=>X(x.d)+','+Y(x.w)).join(' ')}"/>`;
+  W.forEach(x=>s+=`<circle cx="${X(x.d)}" cy="${Y(x.w)}" r="4" fill="#2f7d4f"/>`);
+  s+=`<text x="${p}" y="${h-6}" font-size="11" fill="#6b7770">${fmtS(W[0].d)}</text><text x="${w-50}" y="${h-6}" font-size="11" fill="#6b7770">${fmtS(W[W.length-1].d)}</text></svg>`;
+  return s;
+}
+
+function vNast(){
+  const p=S.pf,st=S.set,b=Math.round(bmr());
+  const need=!p.sex||!p.age||!p.h||!p.w;
+  return `<h2>Nastavení</h2>${need?'<div class="tip">Vyplňte prosím pohlaví, věk, výšku a aktuální váhu. Ostatní je nepovinné.</div>':''}
+  <div class="card form"><h3>O vás</h3><div class="grid">
+  <label>Jméno (do zprávy)<input data-f="pf.name" value="${esc(p.name)}"></label>
+  <label>Pohlaví<select data-f="pf.sex"><option value="">vyberte</option><option value="z" ${p.sex==='z'?'selected':''}>žena</option><option value="m" ${p.sex==='m'?'selected':''}>muž</option></select></label>
+  <label>Věk (roky)<input type="number" data-f="pf.age" value="${esc(p.age)}"></label>
+  <label>Výška (cm)<input type="number" data-f="pf.h" value="${esc(p.h)}"></label>
+  <label>Váha teď (kg)<input type="number" step="0.1" data-f="pf.w" value="${esc(p.w)}"></label>
+  <label>Cílová váha (kg)<input type="number" step="0.1" data-f="pf.goal" value="${esc(p.goal)}"></label>
+  <label>Pohyb během dne<select data-f="pf.act"><option value="1.2" ${p.act==='1.2'?'selected':''}>skoro žádný (sedavé)</option><option value="1.375" ${p.act==='1.375'?'selected':''}>lehký (chůze, občas cvičení)</option><option value="1.55" ${p.act==='1.55'?'selected':''}>střední (cvičení 3-5x týdně)</option></select></label>
+  <label>Úbytek za den (kcal)<select data-f="set.deficit"><option value="300" ${+st.deficit===300?'selected':''}>jemný (300)</option><option value="500" ${+st.deficit===500?'selected':''}>doporučený (500, asi půl kila týdně)</option><option value="650" ${+st.deficit===650?'selected':''}>rychlejší (650)</option></select></label>
+  </div><p><b>Váš denní cíl: ${target()} kcal</b> ${b?`<span class="muted">(základní spotřeba těla ${b} kcal, od ní se odečítá úbytek, nikdy ne pod ${p.sex==='m'?1500:1200} kcal)</span>`:''}</p>
+  <label>Vlastní denní cíl kcal (nechte prázdné, aby si ho aplikace spočítala)<input type="number" data-f="pf.kcal" value="${esc(p.kcal)}" style="max-width:200px"></label>
+  <p class="muted">Hodnoty jsou orientační. Při zdravotních potížích (například revmatoidní artritida) cíl a jídelníček vždy konzultujte s lékařem nebo výživovým specialistou.</p></div>
+  <div class="card"><h3>Sója</h3>
+  <label class="row"><input type="radio" name="soy" data-f="set.soy" value="strict" ${st.soy==='strict'?'checked':''}> <span><b>Vůbec</b> - jídla se sójou se nenabízejí ani při ručním výběru</span></label>
+  <label class="row"><input type="radio" name="soy" data-f="set.soy" value="min" ${st.soy==='min'?'checked':''}> <span><b>Minimálně (doporučeno)</b> - sama se nikdy nenavrhne, jen když ji ručně vyberete (je označená)</span></label>
+  <label class="row"><input type="radio" name="soy" data-f="set.soy" value="any" ${st.soy==='any'?'checked':''}> <span><b>Bez omezení</b> - zařazuje se i tofu a sójové výrobky</span></label>
+  <p class="muted">V původním jídelníčku je sója u tofu, sójových rohlíků, tyčinek a koktejlů. Ke každému takovému jídlu jsem do aplikace přidal náhradu bez sóji (kuřecí maso, špaldový rohlík). Tyčinky a koktejly jsou označené „může obsahovat sóju“, protože záleží na značce. Sója se často skrývá ve složení jako: sójová mouka, sójová bílkovina, sójový olej, sójový lecitin (E322), sójová omáčka, miso, tempeh, edamame. Čtěte složení u pečiva, uzenin, paštik a tyčinek.</p></div>
+  <div class="card"><h3>Jídla během dne</h3><p class="muted">Snídaně, oběd a večeře jsou vždy. Svačiny a druhou večeři můžete zapnout.</p>
+  <label class="row"><input type="checkbox" data-f="set.ds" ${st.ds?'checked':''}> Dopolední svačina</label>
+  <label class="row"><input type="checkbox" data-f="set.os" ${st.os?'checked':''}> Odpolední svačina</label>
+  <label class="row"><input type="checkbox" data-f="set.v2" ${st.v2?'checked':''}> II. večeře (když jdete pozdě spát)</label>
+  <button class="b w" data-a="regenall">Použít na další dny nové nastavení</button></div>
+  <div class="card form"><h3>Nákup</h3><div class="grid">
+  <label>Kolikrát týdně nakupuji<select data-f="set.trips"><option value="1" ${String(st.trips)==='1'?'selected':''}>jednou (velký nákup)</option><option value="2" ${String(st.trips)!=='1'?'selected':''}>dvakrát (velký + doplnění čerstvého)</option></select></label>
+  <label>Druhý nákup za kolik dní<select data-f="set.t1">${[3,4,5].map(n=>`<option value="${n}" ${+st.t1===n||(!st.t1&&n===4)?'selected':''}>za ${n} dny</option>`).join('')}</select></label></div>
+  <p class="muted">Podle toho aplikace sestaví jídelníček a nákupní seznam: trvanlivé věci (mrkev, rýže, sýry) koupíte jednou, čerstvé (ryby, saláty, mleté maso) až při druhém nákupu nebo v den vaření.</p></div>
+  <div class="card"><h3>Připomínky</h3>
+  <label class="row"><input type="checkbox" data-f="rem.on" ${S.rem.on?'checked':''}> Zapnout připomínky jídla, pití a vážení</label>
+  <div class="grid form" style="margin:8px 0">${SL.map(x=>`<label>${x[1]}<input type="time" data-f="set.rt.${x[0]}" value="${(st.rt&&st.rt[x[0]])||''}"></label>`).join('')}
+  <label>Připomenout vážení<select data-f="rem.w"><option value="">nepřipomínat</option>${[['1','v pondělí'],['2','v úterý'],['3','ve středu'],['4','ve čtvrtek'],['5','v pátek'],['6','v sobotu'],['0','v neděli']].map(o=>`<option value="${o[0]}" ${S.rem.w===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label>
+  <label>Chodím spát v<input type="time" data-f="set.bed" value="${st.bed||'22:00'}"></label></div>
+  <div class="row"><button class="b s" data-a="notif">Povolit upozornění prohlížeče</button></div>
+  <p class="muted">Připomínky se zobrazí, jen dokud je aplikace otevřená v Chrome (stačí, když je na pozadí). Nezavřená záložka = funguje. Když ji zavřete, připomínka nepřijde. Čas jídla se používá i k hlídání pauz a pozdní večeře.</p></div>
+  <div class="card form"><h3>Ceny surovin</h3><details><summary>Upravit ceny (Kč za kg, litr nebo kus)</summary><div class="grid" style="margin-top:8px">${Object.keys(ING).sort((a,b)=>a.localeCompare(b,'cs')).map(n=>`<label>${n} (Kč/${unitOf(n)==='ks'?'ks':unitOf(n)==='ml'?'l':'kg'})<input type="number" data-p="${n}" value="${price(n)}"></label>`).join('')}</div></details><p class="muted">Výchozí ceny jsou můj odhad pro rok 2026. Upravte je podle svého obchodu, odhad nákupu pak bude přesnější.</p></div>
+  <div class="card"><h3>Suroviny, které nechci navrhovat</h3>${S.noing.length?S.noing.map(n=>`<span class="chip">${n} <button class="b x sm" data-a="noing" data-v="${n}">povolit</button></span>`).join(' '):'<p class="muted">Zatím žádné. U jídla klepněte na „Záměna suroviny“ a u drahé nebo nedostupné suroviny zvolte „nenavrhovat“.</p>'}</div>
+  <div class="card"><h3>Záloha dat</h3><p class="muted">Vaše data jsou uložená jen v tomto prohlížeči na tomto počítači. Občas si udělejte zálohu.</p>
+  <div class="row"><button class="b s" data-a="export">Stáhnout zálohu</button><label class="b s">Obnovit ze zálohy<input type="file" accept=".json" id="imp" style="display:none"></label><button class="b x" data-a="wipe">Smazat vše</button></div></div>`;
+}
+
+/* ============ MODAL ============ */
+function modal(html){$('#mbox').innerHTML=html;$('#modal').classList.add('on');}
+function closeM(){$('#modal').classList.remove('on');}
+function swapModal(s){
+  const d=getDay(cur);
+  const list=R.filter(x=>x.s===s&&allowedPick(x)&&!S.ban.includes(x.id)&&!hasNo(x)).sort((a,b)=>a.n.localeCompare(b.n,'cs'));
+  modal(`<div class="row" style="justify-content:space-between"><h3 style="margin:0">${slotName(s)} - vyberte jídlo</h3><button class="b x sm" data-a="closem">Zavřít</button></div><button class="b" style="margin:10px 0" data-a="rndswap" data-v="${s}">Vybrat náhodně jiné</button>`+
+  list.map(x=>`<div class="pick" data-a="setmeal" data-s="${s}" data-v="${x.id}"><div>${esc(x.n)}<div class="muted">${x.k} kcal ${soyBadge(x)}</div></div>${d.m[s]===x.id?'<b>vybráno</b>':''}</div>`).join(''));
+}
+
+function subModal(s){
+  const d=getDay(cur),x=RB[d.m[s]],sub=(d.sub&&d.sub[s])||{};
+  const rows=ingList(x,d,s).map(i=>{const o=i.o,opts=SUB[o]||[],on=sub[o],no=S.noing.includes(o);
+    return `<div class="pick" style="cursor:default;flex-wrap:wrap"><div><b>${i.n}</b> <span class="muted">${pl(i.n)}</span>${on?` <span class="muted">(původně ${o})</span>`:''}</div><div class="row">${opts.map(n=>`<button class="b s sm" data-a="dosub" data-s="${s}" data-o="${o}" data-v="${n}">${n} <span style="opacity:.7">${pl(n)}</span></button>`).join('')}${on?`<button class="b x sm" data-a="dosub" data-s="${s}" data-o="${o}" data-v="">vrátit původní</button>`:''}<button class="b ${no?'w':'x'} sm" data-a="noing" data-s="${s}" data-v="${o}">${no?'znovu povolit':'nenavrhovat'}</button></div></div>`;}).join('');
+  modal(`<div class="row" style="justify-content:space-between"><h3 style="margin:0">Záměna suroviny</h3><button class="b x sm" data-a="closem">Zavřít</button></div><p class="muted">${esc(x.n)}<br>Nabízím jen záměny stejného druhu (drůbež za drůbež, ryba za rybu, pečivo za pečivo), aby zůstal smysl jídelníčku od výživového specialisty. Větší změny raději s ním konzultujte. Záměna se projeví i v nákupním seznamu. „Nenavrhovat“ znamená, že jídla s touto surovinou se přestanou sama zařazovat (například když je králík drahý).</p>${rows}`);
+}
+
+/* ============ CENY, VÝŽIVA, ODHAD ZE SUROVIN ============ */
+const PR={'Kuřecí maso':160,'Krůtí maso':220,'Krůtí šunka':300,'Šunka':260,'Vepřová panenka':260,'Hovězí maso':380,'Mleté maso':200,'Králík':300,'Krůtí stehno':130,'Losos':650,'Pstruh':380,'Tuňák':400,'Sumeček africký':350,'Rybí filé':220,
+'Ricotta':250,'Tvaroh':80,'Bílý jogurt':50,'Ovocný jogurt':60,'Ovocný tvaroh':90,'Cottage':150,'Lučina':200,'Tvrdý sýr':280,'Plátkový sýr':250,'Mozzarella':250,'Feta':280,'Zakysaná smetana':90,'Pomazánkové máslo':150,'Kefír':40,'Mléko':28,'Vejce':5.5,
+'Žitný chléb':60,'Špaldový chléb':90,'Celozrnný chléb':70,'Kváskový chléb':80,'Pohankový chléb':110,'Celozrnný toustový chléb':80,'Žitný dalamánek':90,'Špaldový rohlík':90,'Sójový rohlík':90,'Rýžový chlebíček':2.5,'Žitné pečivo':80,'Celozrnné pečivo':80,'Celozrnná špaldová mouka':50,'Obiloviny na kaši':70,'Pohanka':70,'Rýže natural':60,'Rýže basmati':80,'Divoká rýže':250,'Quinoa':200,'Celozrnný kuskus':100,'Celozrnné těstoviny':80,'Rýžové nudle':120,
+'Rajče':70,'Paprika':90,'Okurka':50,'Mrkev':30,'Pórek':40,'Ředkvičky':60,'Salát':100,'Ledový salát':80,'Špenát':100,'Brokolice':70,'Květák':60,'Cuketa':50,'Zelené fazolky':100,'Hrášek':80,'Celer':40,'Kedlubna':40,'Zelí':25,'Cibule':25,'Česnek':150,'Žampiony':100,'Hlíva ústřičná':150,'Fenykl':80,'Dýně':40,'Červená řepa':35,'Rukola':300,'Brambory':25,'Bílá ředkev':40,'Zelenina':60,'Bylinky':400,'Zelný salát':50,'Kukuřice':70,
+'Ovoce':70,'Jablko':40,'Ananas':60,'Mandarinka':50,'Meloun':30,'Jahody':150,'Rozinky':200,'Sušené ovoce':250,'Pomeranč':40,
+'Bílé fazole':90,'Fazole adzuki':150,'Ořechy':400,'Mandle':400,'Semínka':200,'Vlašské ořechy':450,'Tofu':160,'Proteinová tyčinka':40,'Proteinový koktejl':100,
+'Med':250,'Olivový olej':150,'Hořčice':80,'Javorový sirup':400,'Jablečné pyré':60};
+/* kcal a bílkoviny na 100 g (ml), u kusů na 1 kus */
+const NUT={'Kuřecí maso':[110,23],'Krůtí maso':[110,24],'Krůtí šunka':[100,18],'Šunka':[110,18],'Vepřová panenka':[143,21],'Hovězí maso':[150,21],'Mleté maso':[200,19],'Králík':[110,18],'Krůtí stehno':[110,17],'Losos':[200,20],'Pstruh':[140,20],'Tuňák':[115,25],'Sumeček africký':[100,17],'Rybí filé':[80,17],
+'Ricotta':[170,11],'Tvaroh':[90,12],'Bílý jogurt':[60,4],'Ovocný jogurt':[95,4],'Ovocný tvaroh':[110,7],'Cottage':[100,12],'Lučina':[230,9],'Tvrdý sýr':[280,27],'Plátkový sýr':[280,26],'Mozzarella':[240,18],'Feta':[260,14],'Zakysaná smetana':[120,3],'Pomazánkové máslo':[550,1],'Kefír':[50,3.4],'Mléko':[46,3.4],'Vejce':[75,6.5],
+'Žitný chléb':[215,6.5],'Špaldový chléb':[240,9],'Celozrnný chléb':[230,8],'Kváskový chléb':[235,7],'Pohankový chléb':[240,6.5],'Celozrnný toustový chléb':[250,8],'Žitný dalamánek':[250,8],'Špaldový rohlík':[270,9],'Sójový rohlík':[280,12],'Rýžový chlebíček':[35,0.8],'Žitné pečivo':[240,8],'Celozrnné pečivo':[250,9],'Celozrnná špaldová mouka':[340,12],'Obiloviny na kaši':[360,12],'Pohanka':[340,13],'Rýže natural':[350,7.5],'Rýže basmati':[350,8],'Divoká rýže':[350,14],'Quinoa':[370,14],'Celozrnný kuskus':[350,12],'Celozrnné těstoviny':[350,13],'Rýžové nudle':[360,6],
+'Rajče':[20,1],'Paprika':[28,1],'Okurka':[14,0.7],'Mrkev':[35,0.9],'Pórek':[30,2],'Ředkvičky':[16,1],'Salát':[15,1.4],'Ledový salát':[14,0.9],'Špenát':[23,2.9],'Brokolice':[34,2.8],'Květák':[25,2],'Cuketa':[17,1.2],'Zelené fazolky':[31,1.8],'Hrášek':[70,5],'Celer':[35,1.5],'Kedlubna':[27,1.7],'Zelí':[25,1.3],'Cibule':[40,1.1],'Česnek':[140,6],'Žampiony':[22,3],'Hlíva ústřičná':[33,3],'Fenykl':[31,1.2],'Dýně':[26,1],'Červená řepa':[43,1.6],'Rukola':[25,2.6],'Brambory':[77,2],'Bílá ředkev':[18,0.6],'Zelenina':[28,1.3],'Bylinky':[40,3],'Zelný salát':[45,1.2],'Kukuřice':[90,3],
+'Ovoce':[50,0.8],'Jablko':[52,0.3],'Ananas':[50,0.5],'Mandarinka':[45,0.7],'Meloun':[30,0.6],'Jahody':[33,0.7],'Rozinky':[300,3],'Sušené ovoce':[300,3],'Pomeranč':[47,0.9],
+'Bílé fazole':[340,22],'Fazole adzuki':[330,20],'Ořechy':[620,15],'Mandle':[600,21],'Semínka':[580,20],'Vlašské ořechy':[650,15],'Tofu':[120,13],'Proteinová tyčinka':[160,12],'Proteinový koktejl':[60,8],
+'Med':[300,0.3],'Olivový olej':[880,0],'Hořčice':[70,4],'Javorový sirup':[260,0],'Jablečné pyré':[45,0.3]};
+const KW=[[/krůtí šunk|šunk\S* krůt/i,'Krůtí šunka'],[/šunk/i,'Šunka'],[/krůtí stehn|krůtí stehen/i,'Krůtí stehno'],[/krůt/i,'Krůtí maso'],[/kuřec|kuře|drůbe/i,'Kuřecí maso'],[/králí/i,'Králík'],[/vepřov|panenk/i,'Vepřová panenka'],[/mlet/i,'Mleté maso'],[/hovězí|hověz/i,'Hovězí maso'],[/losos/i,'Losos'],[/pstruh/i,'Pstruh'],[/tuňák|tuňak/i,'Tuňák'],[/sumeč|sumeček/i,'Sumeček africký'],[/rybí|filé|treska|ryba|ryby/i,'Rybí filé'],[/maso|masa|masem/i,'Kuřecí maso'],
+[/ricott/i,'Ricotta'],[/cottage/i,'Cottage'],[/lučin/i,'Lučina'],[/ovocný tvaroh/i,'Ovocný tvaroh'],[/tvaroh/i,'Tvaroh'],[/ovocný jogurt/i,'Ovocný jogurt'],[/jogurt/i,'Bílý jogurt'],[/kefír/i,'Kefír'],[/mléko|mléc/i,'Mléko'],[/vejc|vajíč|volské oko|omelet|míchan/i,'Vejce'],[/mozzarell/i,'Mozzarella'],[/\bfet[auy]?\b|feta/i,'Feta'],[/zakysan/i,'Zakysaná smetana'],[/sýr/i,'Tvrdý sýr'],
+[/sójov\S* rohlík/i,'Sójový rohlík'],[/rohlík/i,'Špaldový rohlík'],[/dalamánek/i,'Žitný dalamánek'],[/toust/i,'Celozrnný toustový chléb'],[/pohankov\S* chléb/i,'Pohankový chléb'],[/kváskov/i,'Kváskový chléb'],[/špaldov\S* chléb/i,'Špaldový chléb'],[/žitn\S* chléb/i,'Žitný chléb'],[/chlebíč/i,'Rýžový chlebíček'],[/chléb|chleb|baget/i,'Celozrnný chléb'],[/pečivo|pečiva/i,'Celozrnné pečivo'],[/kaše|kaši|vločk/i,'Obiloviny na kaši'],[/pohank/i,'Pohanka'],[/divok\S* rýž/i,'Divoká rýže'],[/basmati/i,'Rýže basmati'],[/rýž/i,'Rýže natural'],[/quinoa/i,'Quinoa'],[/kuskus/i,'Celozrnný kuskus'],[/těstovin/i,'Celozrnné těstoviny'],[/nudl/i,'Rýžové nudle'],[/brambor/i,'Brambory'],
+[/rajč/i,'Rajče'],[/paprik/i,'Paprika'],[/okurk/i,'Okurka'],[/mrkv/i,'Mrkev'],[/pórek|pórk/i,'Pórek'],[/ředkvič/i,'Ředkvičky'],[/ledov/i,'Ledový salát'],[/salát|salat|listy/i,'Salát'],[/špenát/i,'Špenát'],[/brokolic/i,'Brokolice'],[/květák/i,'Květák'],[/cukět|cuket/i,'Cuketa'],[/fazolk/i,'Zelené fazolky'],[/hrášek|hrách/i,'Hrášek'],[/celer/i,'Celer'],[/kedluben/i,'Kedlubna'],[/zelí|zelný/i,'Zelí'],[/cibul/i,'Cibule'],[/česnek/i,'Česnek'],[/žampion/i,'Žampiony'],[/hlív/i,'Hlíva ústřičná'],[/fenykl/i,'Fenykl'],[/dýň/i,'Dýně'],[/řepa|řepy|řepou/i,'Červená řepa'],[/rukol/i,'Rukola'],[/kukuřic/i,'Kukuřice'],[/zelenin/i,'Zelenina'],[/pažitk|bylink|bazalk|petržel|kmín|tymián/i,'Bylinky'],
+[/jablk|jablíč/i,'Jablko'],[/ananas/i,'Ananas'],[/mandarink/i,'Mandarinka'],[/meloun/i,'Meloun'],[/jahod/i,'Jahody'],[/rozink/i,'Rozinky'],[/sušené ovoce/i,'Sušené ovoce'],[/pomeranč/i,'Pomeranč'],[/ovoce|malin|borůvk|ostružin|kiwi|hrušk|banán|broskv|třešn|meruněk|švestk|hrozn/i,'Ovoce'],
+[/tofu|tempeh/i,'Tofu'],[/tyčink/i,'Proteinová tyčinka'],[/koktejl/i,'Proteinový koktejl'],[/vlašsk/i,'Vlašské ořechy'],[/mandl/i,'Mandle'],[/ořech|ořešk/i,'Ořechy'],[/semín/i,'Semínka'],[/adzuki/i,'Fazole adzuki'],[/fazol/i,'Bílé fazole'],[/olivov/i,'Olivový olej'],[/hořčic/i,'Hořčice'],[/\bmed\b|medu/i,'Med'],[/javorov/i,'Javorový sirup'],[/pyré/i,'Jablečné pyré']];
+function price(n){return S.price&&S.price[n]!=null&&S.price[n]!==''?+S.price[n]:(PR[n]||0);}
+function unitOf(n){return (ING[n]||'X').split('/')[1]||'g';}
+function cost(n,q){return unitOf(n)==='ks'?price(n)*q:price(n)*q/1000;}
+function pl(n){const p=price(n);if(!p)return '';const u=unitOf(n);return '~'+p+' Kč/'+(u==='ks'?'ks':u==='ml'?'l':'kg');}
+function mealCost(x,d,s){return Math.round(ingList(x,d,s).reduce((a,i)=>a+cost(i.n,i.q*mf(d,s)),0));}
+function dayCost(d){return activeSlots().reduce((a,s)=>a+(RB[d.m[s]]?mealCost(RB[d.m[s]],d,s):0),0);}
+function parseIng(text){
+  const out={};
+  text.split(/[,;()]|\s+(?:a|s|se|na|ve|v|z)\s+|\s*\+\s*/).forEach(p0=>{
+    const p=p0.split(/\s+nebo\s+/)[0].trim();if(!p)return;
+    const kw=KW.find(k=>k[0].test(p));if(!kw)return;const n=kw[1],u=unitOf(n);let q=0;
+    const m=p.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|dl|l|ks)(?![a-zěščřžýáíéúůďťň])/i);
+    if(m){let v=parseFloat(m[1].replace(',','.'));const un=m[2].toLowerCase();if(un==='kg'||un==='l')v*=1000;if(un==='dl')v*=100;
+      if(u==='ks')q=un==='ks'?v:(n==='Vejce'?Math.max(1,Math.round(v/60)):1);else if(un==='ks')q=v*(n==='Jablko'?150:100);else q=v;}
+    else{const m2=p.match(/(\d+)\s*(?=vejc|vajíč|vajec|chlebíč)/i);if(m2)q=+m2[1];else if(/půl/i.test(p)&&u==='ks')q=0.5;}
+    if(!q)q=u==='ks'?1:(n==='Bylinky'?5:({Z:80,O:80,M:100,D:50,P:50,L:20,X:5}[(ING[n]||'X')[0]]||50));
+    out[n]=(out[n]||0)+q;});
+  return out;
+}
+function nutOf(o){let k=0,p=0;for(const n in o){const v=NUT[n];if(!v)continue;const f=unitOf(n)==='ks'?o[n]:o[n]/100;k+=v[0]*f;p+=v[1]*f;}return {k:Math.round(k/5)*5,p:Math.round(p)};}
+function ingStr(o){return Object.entries(o).map(([n,q])=>n+' '+Math.max(1,Math.round(q))).join(',');}
+function chipsStr(str){return str.split(',').filter(Boolean).map(i=>{const m=i.match(/^(.*) (\d+)$/);if(!m)return '';const u=unitOf(m[1]);return `<span class="chip">${m[1]} ${m[2]} ${u}</span>`;}).join('');}
+
+/* ============ HLÍDÁNÍ ============ */
+function toMin(t){const a=String(t||'0:0').split(':').map(Number);return a[0]*60+(a[1]||0);}
+function alertsHtml(l){return l.length?`<div class="card"><h3>Hlídání</h3>${l.map(a=>`<div class="al ${a[0]}">${a[1]}</div>`).join('')}</div>`:'';}
+function planAlerts(date,pre){
+  const out=[],d=getDay(date),T=target(),pf=pre?fmt(date)+': ':'';
+  const pp=Math.round(activeSlots().reduce((a,s)=>a+(RB[d.m[s]]?RB[d.m[s]].p:0),0)*d.f);
+  if(pp<T*0.2/4)out.push(['w',`${pf}v plánu je jen ${pp} g bílkovin. Vyměňte některé jídlo za variantu s masem, vejci nebo tvarohem.`]);
+  const kk=dayPlanK(d);if(kk>T*1.12)out.push(['w',`${pf}plán má ${kk} kcal, to je víc než cíl ${T}.`]);
+  return out;
+}
+function weekAlerts(t){let all=[],c=0;for(let i=0;i<7;i++){const dt=addD(t,i);all=all.concat(planAlerts(dt,true));c+=dayCost(getDay(dt));}
+  return `<p class="muted">Odhad ceny jídel na týden: <b>~${c} Kč</b> (ceny jsou orientační, upravíte je v Nastavení).</p>`+alertsHtml(all.slice(0,8));}
+function dayAlerts(date){
+  const out=planAlerts(date),t=TODAY(),d=getDay(date),T=dayTarget(d),k=dayKcal(d);
+  if(date===t&&new Date().getDay()===1)out.push(['i','Je pondělí. V záložce Pokrok najdete týdenní hodnocení a návrh úpravy.']);
+  if(date===t){
+    const now=new Date(),nm=now.getHours()*60+now.getMinutes(),h=now.getHours();
+    const times=activeSlots().filter(s=>d.done[s]).map(s=>toMin(d.done[s])).sort((a,b)=>a-b);
+    const undone=activeSlots().filter(s=>!d.done[s]);
+    if(h>=7&&h<21&&undone.length){if(times.length){const gap=nm-times[times.length-1];if(gap>180)out.push(['i',`Od posledního zapsaného jídla uplynuly ${Math.floor(gap/60)} hodiny. Pauzy by neměly být delší než 3 hodiny, je čas na další jídlo.`]);}else if(nm>10*60)out.push(['i','Dnes zatím nemáte zapsané žádné jídlo. Pravidelné jídlo je základ.']);}
+    const exp=Math.round(waterGoal()*clamp((nm-8*60)/(12*60),0,1));
+    if(h>=11&&d.water<exp-1)out.push(['i',`Pití: máte ${d.water} sklenic, v tuto dobu by mělo být asi ${exp}. Napijte se dřív, než dostanete žízeň.`]);
+    if(times.length&&times[times.length-1]>toMin(S.set.bed||'22:00')-120)out.push(['w','Poslední jídlo dne má být 2 až 3 hodiny před spaním. Dnes jste jedl/a později.']);
+    const lw=S.wt.length?S.wt[S.wt.length-1]:null;
+    if(!lw||(parse(t)-parse(lw.d))/864e5>7)out.push(['i','Dlouho jste se nevážil/a. Zapište váhu, ať je vidět pokrok.']);
+    if(lw){const b=[...S.wt].reverse().find(x=>x.d<=addD(lw.d,-7)&&x.d>=addD(lw.d,-28));if(b){const rate=(lw.w-b.w)/((parse(lw.d)-parse(b.d))/6048e5);if(rate<-1)out.push(['w',`Hubnete rychleji než 1 kg týdně (${rate.toFixed(1).replace('.',',')} kg). Příliš rychlé hubnutí není dobré, poraďte se s výživovým specialistou.`]);}}
+    let over=0;for(let i=1;i<=3;i++){const pd=S.plan[addD(t,-i)];if(pd&&pd.ex.concat(Object.keys(pd.done)).length&&dayKcal(pd)>T*1.1&&!pd.free)over++;}
+    if(over===3)out.push(['i','Už třetí den po sobě jste nad cílem. Zkuste dnes lehčí jídla se zeleninou a bílkovinou, nic si nevyčítejte.']);
+  }
+  if(k>T*1.1)out.push(['w',`Dnes jste nad cílem o ${k-T} kcal. Nic si nevyčítejte, další jídlo vezměte lehčí (zelenina a bílkovina).`]);
+  const sw=weekSoy(date);if(sw)out.push(['i',`V posledních 7 dnech: ${sw} jídel se sójou.`]);
+  return out;
+}
+
+/* ============ PŘIPOMÍNKY ============ */
+function toast(t,b){const el=document.createElement('div');el.className='toast';el.innerHTML=`<b>${esc(t)}</b><div>${esc(b||'')}</div><button class="b s sm" onclick="this.parentNode.remove()">OK</button>`;$('#toasts').appendChild(el);}
+function ping(t,b){toast(t,b);try{if('Notification' in window&&Notification.permission==='granted')new Notification(t,{body:b||''});}catch(e){}}
+function remCheck(){
+  if(!S.rem||!S.rem.on)return;
+  const t=TODAY(),now=new Date(),nm=now.getHours()*60+now.getMinutes(),d=S.plan[t];
+  if(!S.rem.fired||S.rem.fired.d!==t)S.rem.fired={d:t};const f=S.rem.fired;let ch=false;
+  activeSlots().forEach(s=>{const at=S.set.rt&&S.set.rt[s];if(!at||f[s])return;const am=toMin(at);if(nm<am)return;f[s]=1;ch=true;if(nm-am>90)return;if(d&&d.done[s])return;ping('Čas na '+slotName(s).toLowerCase(),d&&RB[d.m[s]]?RB[d.m[s]].n.split(',')[0]:'');});
+  [630,810,990,1170].forEach(m=>{const key='w'+m;if(f[key]||nm<m)return;f[key]=1;ch=true;if(nm-m>60)return;const exp=Math.round(waterGoal()*clamp((m-8*60)/(12*60),0,1));if(!d||d.water<exp)ping('Napijte se','Dnes zatím '+(d?d.water:0)+' sklenic z '+waterGoal()+'.');});
+  if(S.rem.w!==''&&String(now.getDay())===String(S.rem.w)&&!f.wt&&nm>=450){f.wt=1;ch=true;if(nm-450<=180&&!S.wt.some(x=>x.d===t))ping('Čas na vážení','Zapište si dnešní váhu v záložce Pokrok.');}
+  if(ch)save();
+}
+
+/* ============ IMPORT A VLASTNÍ RECEPTY ============ */
+let IMP=[];
+async function docxText(buf){
+  const u=new Uint8Array(buf),dv=new DataView(buf);let e=u.length-22;
+  while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error('zip');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);
+  for(let i=0;i<n;i++){
+    const method=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),off=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u.subarray(p+46,p+46+nl));
+    if(name==='word/document.xml'){
+      const st=off+30+dv.getUint16(off+26,true)+dv.getUint16(off+28,true),data=u.subarray(st,st+cs);let xml;
+      if(method===0)xml=new TextDecoder().decode(data);
+      else{const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(data);w.close();xml=await new Response(ds.readable).text();}
+      return xml.split('</w:p>').map(par=>par.replace(/<w:tab\/>/g,' ').replace(/<w:br\/>/g,' ').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").trim());
+    }
+    p+=46+nl+el+cl;
+  }
+  throw new Error('nodoc');
+}
+const HEAD=[[/^SNÍDAN[ĚE]$/i,'sn'],[/^DOPOLEDNÍ SVAČINA$/i,'ds'],[/^ODPOLEDNÍ SVAČINA$/i,'os'],[/^OBĚD$/i,'ob'],[/^II\.? ?VEČEŘE$/i,'v2'],[/^VEČEŘE$/i,'ve']];
+function impModal(){modal(`<div class="row" style="justify-content:space-between"><h3 style="margin:0">Nahrát jídelníček od specialisty</h3><button class="b x sm" data-a="closem">Zavřít</button></div>
+<p class="muted">Vyberte Word (.docx) nebo textový soubor. Aplikace v něm najde nadpisy Snídaně, Dopolední svačina, Oběd, Odpolední svačina, Večeře, II. večeře a pod nimi jednotlivá jídla. Kalorie a bílkoviny odhadne ze surovin, před uložením je můžete opravit. Nová jídla se přidají k vašim, nic se nemaže.</p>
+<input type="file" id="impf" accept=".docx,.txt"><p class="muted">Nebo vložte text (nadpis na samostatném řádku, pod něj jednotlivá jídla):</p><textarea id="impt" rows="6" style="width:100%"></textarea><div class="row" style="margin-top:8px"><button class="b" data-a="impgo">Zpracovat vložený text</button></div>`);}
+async function impFile(f){if(!f)return;try{const lines=/\.docx$/i.test(f.name)?await docxText(await f.arrayBuffer()):(await f.text()).split(/\r?\n/);impParse(lines);}catch(e){alert('Soubor se nepodařilo přečíst. Zkuste text z Wordu zkopírovat a vložit do políčka.');}}
+function impParse(lines){
+  let cs=null;IMP=[];const have=new Set(R.map(x=>x.n.toLowerCase().replace(/\s+/g,' ')));
+  lines.forEach(l0=>{const l=l0.replace(/\s+/g,' ').trim().replace(/[:.]$/,'');if(!l)return;
+    const h=HEAD.find(x=>x[0].test(l));if(h){cs=h[1];return;}
+    if(l===l.toUpperCase()&&/[A-ZÁ-Ž]{3}/.test(l)){cs=null;return;}
+    if(!cs||l.length<8)return;
+    const o=parseIng(l),nu=nutOf(o),km=l.match(/(\d{2,4})\s*kcal/i),dup=have.has(l.toLowerCase());
+    IMP.push({s:cs,n:l,ing:ingStr(o),k:km?+km[1]:nu.k,p:nu.p,soy:/sój|sojov|tofu|tempeh|miso|edamame/i.test(l)?1:0,on:!dup,dup});});
+  if(!IMP.length){alert('Nenašel jsem žádná jídla. Nadpisy musí být na samostatném řádku (Snídaně, Dopolední svačina, Oběd, Odpolední svačina, Večeře, II. večeře) a pod nimi jednotlivá jídla.');return;}
+  impPreview();
+}
+function impPreview(){
+  modal(`<div class="row" style="justify-content:space-between"><h3 style="margin:0">Nalezeno ${IMP.length} jídel</h3><button class="b x sm" data-a="closem">Zavřít</button></div><p class="muted">Zaškrtnutá jídla se přidají. Kalorie a bílkoviny jsou odhad ze surovin, klidně je přepište. Jídla, která už v aplikaci jsou, nejsou zaškrtnutá.</p>`+
+  IMP.map((x,i)=>`<div class="pick" style="cursor:default;flex-wrap:wrap"><label><input type="checkbox" data-imp="${i}:on" ${x.on?'checked':''}> <select data-imp="${i}:s">${SL.map(a=>`<option value="${a[0]}" ${a[0]===x.s?'selected':''}>${a[1]}</option>`).join('')}</select></label>
+  <div style="flex:1;min-width:240px">${esc(x.n)} ${x.dup?'<span class="soy">už existuje</span>':''} ${x.soy?'<span class="soy">sója</span>':''}<div>${chipsStr(x.ing)||'<span class="muted">suroviny nenalezeny, nákup je nezapočítá</span>'}</div></div>
+  <div class="row" style="flex-wrap:nowrap"><input type="number" data-imp="${i}:k" value="${x.k}" style="width:80px"><span class="muted">kcal</span><input type="number" data-imp="${i}:p" value="${x.p}" style="width:64px"><span class="muted">g bílk.</span></div></div>`).join('')+
+  `<div class="row" style="margin-top:12px"><button class="b" data-a="impsave">Přidat vybraná jídla</button><button class="b x" data-a="closem">Zrušit</button></div>`);
+}
+function impEdit(t){const a=t.dataset.imp.split(':'),o=IMP[+a[0]];if(!o)return;if(a[1]==='on')o.on=t.checked;else if(a[1]==='s')o.s=t.value;else o[a[1]]=+t.value;}
+function newCustom(x){S.cn=(S.cn||0)+1;x.id='u'+S.cn;S.custom.push(x);R.push(x);RB[x.id]=x;}
+function customModal(){modal(`<div class="row" style="justify-content:space-between"><h3 style="margin:0">Vlastní recept</h3><button class="b x sm" data-a="closem">Zavřít</button></div><div class="form">
+<label>Které jídlo<select id="cs">${SL.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join('')}</select></label>
+<label>Název s množstvími, například: Kuřecí prsa 150 g, rýže 50 g, brokolice 100 g<input id="cnm"></label>
+<label>Suroviny pro nákup (nepovinné, jinak se vezmou z názvu)<input id="ci"></label>
+<div class="grid"><label>kcal (prázdné = odhad)<input id="ck" type="number"></label><label>Bílkoviny g (prázdné = odhad)<input id="cp" type="number"></label></div>
+<label class="row" style="color:var(--ink)"><input type="checkbox" id="csoy" style="width:auto"> obsahuje sóju</label></div>
+<div class="row" style="margin-top:10px"><button class="b" data-a="customsave">Uložit recept</button><button class="b x" data-a="closem">Zrušit</button></div>`);}
+
+/* ============ MĚSÍČNÍ PŘEHLED ============ */
+const MN=['leden','únor','březen','duben','květen','červen','červenec','srpen','září','říjen','listopad','prosinec'];
+function monthCard(){
+  const off=+(S.rm||0),now=new Date(),b=new Date(now.getFullYear(),now.getMonth()-off,1),y=b.getFullYear(),m=b.getMonth(),nd=new Date(y,m+1,0).getDate();
+  const dates=Array.from({length:nd},(_,i)=>y+'-'+pad(m+1)+'-'+pad(i+1));
+  let logged=0,kc=0,wat=0,soy=0,em=0,pm=0;const cnt={},weeks={};
+  dates.forEach(dt=>{const d=S.plan[dt];if(!d)return;const sl=activeSlots(),el=sl.filter(s=>d.done[s]);if(!el.length&&!d.ex.length&&!d.water)return;
+    logged++;const k=dayKcal(d);kc+=k;wat+=d.water;soy+=daySoy(d);em+=el.length;pm+=sl.length;
+    el.forEach(s=>{const id=d.m[s];if(id)cnt[id]=(cnt[id]||0)+1;});
+    const mon=addD(dt,-((parse(dt).getDay()+6)%7));const w=weeks[mon]=weeks[mon]||{n:0,k:0,w:0};w.n++;w.k+=k;w.w+=d.water;});
+  const lastW=dt=>{const a=S.wt.filter(x=>x.d<=dt);return a.length?a[a.length-1].w:null;};
+  let h=`<div class="card"><div class="row noprint" style="justify-content:space-between"><h3 style="margin:0">Měsíční přehled: ${MN[m]} ${y}</h3><div class="row"><select data-a="rmon">${[0,1,2].map(o=>{const bb=new Date(now.getFullYear(),now.getMonth()-o,1);return `<option value="${o}" ${o===off?'selected':''}>${MN[bb.getMonth()]} ${bb.getFullYear()}</option>`;}).join('')}</select><button class="b" data-a="print">Vytisknout</button></div></div>`;
+  if(!logged)return h+'<p class="muted">V tomto měsíci zatím nejsou zapsaná žádná jídla.</p></div>';
+  const wIn=S.wt.filter(x=>x.d>=dates[0]&&x.d<=dates[nd-1]),prev=lastW(addD(dates[0],-1));
+  h+=`<p>Zapsaných dní: <b>${logged}</b> z ${nd}, průměr <b>${Math.round(kc/logged)} kcal</b> (cíl ${target()}), splněno jídel z plánu <b>${Math.round(em/pm*100)} %</b>, pití v průměru <b>${(wat/logged).toFixed(1).replace('.',',')} sklenic</b>, jídel se sójou: <b>${soy}</b>.`;
+  if(wIn.length){const z=wIn[wIn.length-1].w;h+=` Váha: ${prev!=null?prev:wIn[0].w} kg &rarr; ${z} kg (${(z-(prev!=null?prev:wIn[0].w)>0?'+':'')+(z-(prev!=null?prev:wIn[0].w)).toFixed(1).replace('.',',')} kg).`;}
+  h+='</p>';
+  const ws=Object.keys(weeks).sort().map(mon=>{const a=lastW(addD(mon,-1)),z=lastW(addD(mon,6));return {mon,k:Math.round(weeks[mon].k/weeks[mon].n),w:+(weeks[mon].w/weeks[mon].n).toFixed(1),z,ch:(a!=null&&z!=null)?+(z-a).toFixed(1):null};});
+  h+=`<table><tr><th>Týden od</th><th>Průměr kcal</th><th>Sklenic denně</th><th>Váha na konci</th><th>Změna</th></tr>${ws.map(x=>`<tr><td>${fmtS(x.mon)}</td><td>${x.k}</td><td>${String(x.w).replace('.',',')}</td><td>${x.z!=null?x.z+' kg':'-'}</td><td>${x.ch!=null?(x.ch>0?'+':'')+String(x.ch).replace('.',',')+' kg':'-'}</td></tr>`).join('')}</table>`;
+  const best=ws.filter(x=>x.ch!=null).sort((a,b)=>a.ch-b.ch)[0];
+  if(best&&best.ch<0)h+=`<p><b>Nejlepší týden:</b> od ${fmtS(best.mon)}, změna ${String(best.ch).replace('.',',')} kg, průměr ${best.k} kcal a ${String(best.w).replace('.',',')} sklenic pití denně. Co v něm fungovalo, to zkuste opakovat.</p>`;
+  const top=Object.entries(cnt).filter(e=>RB[e[0]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(top.length)h+=`<h3>Nejčastěji snědená jídla</h3><ul>${top.map(([id,c])=>`<li>${esc(RB[id].n.split(',')[0].replace(/\s*\(.*?\)/g,''))} (${c}x)</li>`).join('')}</ul>`;
+  return h+'</div>';
+}
+
+/* ============ DEN: přeskládání, mimo domov, volnější den ============ */
+const mf=(d,s)=>(d.ff&&d.ff[s])||d.f;
+function dayTarget(d){return target()+(d&&d.free?(+d.freeK||500):0);}
+function redistribute(d){
+  const eaten=dayKcal(d),und=activeSlots().filter(s=>!d.done[s]&&!(d.skip&&d.skip[s])&&RB[d.m[s]]);
+  d.ff={};const rem=dayTarget(d)-eaten;
+  if(!und.length)return {left:Math.round(rem),n:0};
+  const base=und.reduce((a,s)=>a+RB[d.m[s]].k,0),f=clamp(Math.round(rem/base*20)/20,0.6,1.4);
+  und.forEach(s=>d.ff[s]=f);
+  return {left:Math.round(rem-base*f),n:und.length,f};
+}
+function redMsg(r){return r.n?(r.left>150?`Zbylá jídla jsem zvětšil/a. Pořád chybí asi ${r.left} kcal, doplňte lehkou svačinu (jogurt, ovoce).`:r.left<-150?`Jste asi ${-r.left} kcal nad cílem. Zbylá jídla jsem zmenšil/a, případně vynechte svačinu.`:'Zbylá jídla jsem upravil/a, aby den vyšel.'):`Do cíle zbývá už jen ${Math.max(0,r.left)} kcal.`;}
+function dayTools(d){return `<div class="row noprint" style="margin-bottom:10px"><button class="b w sm" data-a="rescue">Něco nevyšlo? Přeskládat den</button><button class="b ${d.free?'w':'s'} sm" data-a="freeday" data-v="${cur}">${d.free?'Volnější den zapnut (zrušit)':'Volnější den (oslava, návštěva)'}</button></div>${d.free?`<div class="al i">Volnější den: cíl je dnes o ${d.freeK||500} kcal vyšší. Nic si nevyčítejte, zítra jedete dál podle plánu.</div>`:''}`;}
+function outModal(s){modal(`<div class="row" style="justify-content:space-between"><h3 style="margin:0">Jím mimo domov: ${slotName(s).toLowerCase()}</h3><button class="b x sm" data-a="closem">Zavřít</button></div>
+<div class="form"><label>Co a kde (nepovinné)<input id="on" placeholder="např. oběd v restauraci"></label>
+<label>Jak velké jídlo<select id="ok"><option value="500">Lehké (salát, polévka, grilované) asi 500 kcal</option><option value="750" selected>Běžné (hlavní jídlo s přílohou) asi 750 kcal</option><option value="1000">Těžké (smažené, omáčky, dezert) asi 1000 kcal</option></select></label>
+<label>Nebo vlastní odhad kcal<input id="ok2" type="number"></label></div>
+<div class="al i" style="margin-top:8px">Rady z vašeho jídelníčku: vybírejte libové maso nebo ryby, zeleninu místo příloh, omáčky stranou. Vyhněte se smaženému, sladkým nápojům a alkoholu. Pijte vodu.</div>
+<div class="row" style="margin-top:10px"><button class="b" data-a="outsave" data-v="${s}">Uložit</button><button class="b x" data-a="closem">Zrušit</button></div>`);}
+
+/* ============ SPÍŽ / DOMA MÁM ============ */
+const shelfOf=n=>SHELF[n]||(['P','L','X'].includes((ING[n]||'X')[0])?180:7);
+const pruneUses=u=>{const o={};Object.keys(u).forEach(n=>{if(u[n].length)o[n]=u[n];});return o;};
+function applyPantry(uses,base){
+  const cons={},out={};
+  Object.keys(uses).forEach(n=>{
+    const pe=S.pantry&&S.pantry[n],us=uses[n].slice().sort((a,b)=>a.i-b.i);
+    if(!pe||!(pe.q>0)){out[n]=us;return;}
+    const exp=addD(pe.d,shelfOf(n)),from=pe.a||pe.d;let avail=pe.q;const res=[];
+    us.forEach(u=>{const udt=addD(base,u.i);if(avail>0&&udt>=from&&udt<=exp){const t=Math.min(avail,u.q);avail-=t;cons[n]=(cons[n]||0)+t;if(u.q-t>0.0001)res.push(Object.assign({},u,{q:u.q-t}));}else res.push(u);});
+    out[n]=res;});
+  return {uses:out,cons};
+}
+function shopData(t,sel){
+  const uses0={};
+  sel.forEach(i=>{const dt=addD(t,i),d=getDay(dt);activeSlots().forEach(s=>{const x=RB[d.m[s]];if(!x||(d.skip&&d.skip[s]))return;const ii=(d.left&&d.left[s])?Math.max(0,i-1):i;ingList(x,d,s).forEach(g=>{(uses0[g.n]=uses0[g.n]||[]).push({i:ii,q:g.q*mf(d,s),s,dt});});});});
+  const ap=applyPantry(uses0,t),uses=pruneUses(ap.uses);
+  return {uses0,uses,cons:ap.cons,al:allocate(uses)};
+}
+function pantryCard(SD){
+  const items=Object.keys(S.pantry||{}).filter(n=>S.pantry[n].q>0).sort((a,b)=>a.localeCompare(b,'cs'));
+  let h=`<div class="card noprint"><h3>Doma mám</h3><p class="muted">Zbytky a zásoby, které už doma jsou. Odečtou se z nákupu a aplikace je při skládání týdne přednostně využije (méně se nakupuje a nic se nevyhodí).</p>`;
+  h+=items.length?items.map(n=>{const e=S.pantry[n],old=addD(e.d,shelfOf(n))<TODAY();return `<div class="row" style="border-top:1px solid var(--line);padding:5px 0"><span><b>${n}</b> ${fmtAmt(n,e.q)} <span class="muted">(koupeno ${fmtS(e.d)}${e.a&&e.a>TODAY()?', k použití od '+fmtS(e.a):''}${old?', už asi nepoužitelné':''})</span>${SD.cons[n]?` <span class="nosoy">v týdnu spotřebuje ${fmtAmt(n,SD.cons[n])}</span>`:''}</span><button class="b x sm" style="margin-left:auto" data-a="pantrydel" data-v="${esc(n)}">smazat</button></div>`;}).join(''):'<p class="muted">Zatím nic. Přidejte, co máte doma.</p>';
+  h+=`<div class="row" style="margin-top:8px"><select id="pn">${Object.keys(ING).sort((a,b)=>a.localeCompare(b,'cs')).map(n=>`<option value="${esc(n)}">${n} (${unitOf(n)==='ks'?'ks':unitOf(n)})</option>`).join('')}</select><input id="pq" type="number" placeholder="množství" style="width:110px"><button class="b s" data-a="pantryadd">Přidat</button></div>
+  <div class="row" style="margin-top:8px"><button class="b" data-a="pantrydone">Nákup hotov: uložit zbytky domů</button></div><p class="muted">Po nákupu a týdnu vaření klepněte na „Nákup hotov“. Zbytky z balení (třeba 90 g masa nebo půlka zelí) se uloží a příští týden se z nákupu odečtou.</p></div>`;
+  return h;
+}
+
+/* ============ CO MÁM DOMA: hledání jídel ============ */
+const TRIV=new Set(['Bylinky','Hořčice','Olivový olej','Med','Javorový sirup','Česnek','Cibule']);
+function fridgeCard(){
+  let h=`<div class="card"><h3>Co mám doma</h3><div class="row"><input id="fq" placeholder="např. kuřecí, rýže, brokolice, vejce" value="${esc(S.fq||'')}" style="flex:1;min-width:220px"><button class="b" data-a="fridge">Najít jídla</button><button class="b s" data-a="fridgep">Vzít z mé spíže</button></div>`;
+  if(S.fq&&S.fq.trim()){
+    const have=new Set(Object.keys(parseIng(S.fq)));
+    if(!have.size)h+='<p class="muted">Nepoznal jsem žádnou surovinu. Napište je jednoduše, např. „kuřecí, rýže, mrkev“.</p>';
+    else{
+      h+=`<p class="muted">Rozpoznáno: ${[...have].join(', ')}</p>`;
+      const res=R.filter(x=>!S.ban.includes(x.id)&&allowedPick(x)&&!hasNo(x)).map(x=>{
+        const nm=ingList(x,null,null).map(g=>g.o).filter(n=>!TRIV.has(n)),hit=nm.filter(n=>have.has(n)),sb=nm.filter(n=>!have.has(n)&&'MP'.includes((ING[n]||'X')[0])&&(SUB[n]||[]).some(a=>have.has(a))),miss=nm.filter(n=>!hit.includes(n)&&!sb.includes(n));
+        return {x,hit,sb,miss,sc:(hit.length+0.7*sb.length)/Math.max(1,nm.length),tot:nm.length};}).filter(r=>r.hit.length+r.sb.length>=1&&r.sc>=0.5).sort((a,b)=>b.sc-a.sc||a.miss.length-b.miss.length).slice(0,12);
+      h+=res.length?res.map(r=>`<div class="pick" style="cursor:default;flex-wrap:wrap"><div style="flex:1;min-width:240px"><div class="slot">${slotName(r.x.s)}</div>${esc(r.x.n)}<div class="muted">Máte ${r.hit.length+r.sb.length} z ${r.tot} surovin${r.sb.length?' (záměna: '+r.sb.join(', ')+')':''}${r.miss.length?'. Chybí: '+r.miss.join(', '):'. Máte vše.'}</div></div><button class="b s sm" data-a="puttoday" data-v="${r.x.id}">Dát na dnes</button></div>`).join(''):'<p class="muted">Z toho, co máte, jsem nenašel jídlo, které by sedělo aspoň z poloviny. Přidejte další suroviny.</p>';
+    }
+  }
+  return h+'</div>';
+}
+
+/* ============ TÝDENNÍ HODNOCENÍ ============ */
+function weekEvalCard(){
+  const t=TODAY();let logged=0,kc=0,em=0,pm=0;
+  for(let i=1;i<=7;i++){const d=S.plan[addD(t,-i)];if(!d)continue;const sl=activeSlots(),el=sl.filter(s=>d.done[s]);if(!el.length&&!d.ex.length)continue;logged++;kc+=dayKcal(d);em+=el.length;pm+=sl.filter(s=>!(d.skip&&d.skip[s])).length||1;}
+  const W=S.wt,w1=W.length?W[W.length-1]:null,w0=w1?[...W].reverse().find(x=>x.d<=addD(w1.d,-5)&&x.d>=addD(w1.d,-28)):null;
+  let h='<div class="card"><h3>Týdenní hodnocení</h3>';
+  if(logged<4)return h+`<p class="muted">Za posledních 7 dní máte zapsáno ${logged} dní. Pro hodnocení potřebuji alespoň 4. Zapisování je půlka úspěchu.</p></div>`;
+  const avg=Math.round(kc/logged),adh=Math.min(1,em/pm),T=target();
+  h+=`<p>Zapsáno <b>${logged}</b> dní z 7, průměr <b>${avg} kcal</b> (cíl ${T}), z plánu splněno <b>${Math.round(adh*100)} %</b>.`;
+  if(!w0||!w1)return h+'</p><div class="al i">Pro vyhodnocení tempa zapište váhu aspoň dvakrát s odstupem týdne.</div></div>';
+  const rate=(w1.w-w0.w)/((parse(w1.d)-parse(w0.d))/6048e5);
+  h+=` Váha: ${w0.w} kg &rarr; ${w1.w} kg, tempo <b>${rate.toFixed(2).replace('.',',')} kg za týden</b>.</p>`;
+  const btn=(d,l)=>`<div class="row noprint"><button class="b s sm" data-a="adj" data-v="${d}">${l}</button></div>`;
+  if(rate<=-1)h+='<div class="al">Hubnete rychleji než 1 kg týdně. To je moc, tělo může přicházet o svaly a hrozí jo-jo efekt. Doporučuji cíl zvýšit a poradit se se specialistou.</div>'+btn(150,'Zvýšit denní cíl o 150 kcal');
+  else if(rate<=-0.25)h+='<div class="al i">Tempo je výborné (ideál je kolem půl kila týdně). Nic neměňte.</div>';
+  else if(adh<0.7)h+=`<div class="al i">Váha stojí, ale plán plníte jen ze ${Math.round(adh*100)} %. Nejdřív zkuste držet plán, cíl zatím neupravujte.</div>`;
+  else if(avg>T*1.05)h+=`<div class="al i">Průměrně jíte víc, než je cíl (${avg} z ${T} kcal). Pomůže zapisovat i drobnosti a hlídat porce.</div>`;
+  else h+='<div class="al i">Plán plníte a váha se nehýbe. Váha kolísá i kvůli vodě, hodnoťte aspoň dva týdny. Pokud to trvá, přidejte 20 minut chůze denně, nebo snižte cíl o 100 kcal.</div>'+btn(-100,'Snížit denní cíl o 100 kcal');
+  return h+'</div>';
+}
+/* ============ AKCE ============ */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-a]');if(!t)return;
+  const a=t.dataset.a,v=t.dataset.v;
+  if(t.tagName==='INPUT'&&(t.type==='checkbox')&&a==='shopday'){const i=+v;const sel=new Set(S.shop.days||[0,1,2,3,4,5,6]);t.checked?sel.add(i):sel.delete(i);S.shop.days=[...sel].sort();render();return;}
+  if(t.tagName==='INPUT'&&a==='shopck'){S.shop.ck=S.shop.ck||{};S.shop.ck[v]=t.checked;render();return;}
+  if(t.tagName==='SELECT'||t.tagName==='INPUT')return;
+  switch(a){
+    case 'tab':tab=v;closeM();render();window.scrollTo(0,0);break;
+    case 'day':cur=addD(cur,+v);render();break;
+    case 'open':cur=v;tab='dnes';render();window.scrollTo(0,0);break;
+    case 'water':{const d=getDay(cur);d.water=clamp(d.water+ +v,0,30);render();break;}
+    case 'done':{const d=getDay(cur);if(d.done[v])delete d.done[v];else d.done[v]=nowT();render();break;}
+    case 'ing':$('#ing-'+v).classList.toggle('hide');break;
+    case 'swap':swapModal(v);break;
+    case 'closem':closeM();break;
+    case 'subm':subModal(v);break;
+    case 'dosub':{const d=getDay(cur),sl=t.dataset.s,o=t.dataset.o;d.sub=d.sub||{};d.sub[sl]=d.sub[sl]||{};if(v)d.sub[sl][o]=v;else delete d.sub[sl][o];render();subModal(sl);break;}
+    case 'noing':{S.noing=S.noing.includes(v)?S.noing.filter(x=>x!==v):S.noing.concat(v);render();if(t.dataset.s)subModal(t.dataset.s);break;}
+    case 'lock':{const d=getDay(cur);d.lock=d.lock||{};d.lock[v]=!d.lock[v];if(!d.lock[v]&&d.left)delete d.left[v];render();break;}
+    case 'wk':wo=clamp(wo+ +v,0,8);render();break;
+    case 'skipm':{const d=getDay(cur);d.skip=d.skip||{};d.skip[v]=true;delete d.done[v];const r=redistribute(d);render();alert('Vynecháno. '+redMsg(r));break;}
+    case 'unskip':{const d=getDay(cur);if(d.skip)delete d.skip[v];if(d.out)delete d.out[v];d.ex=d.ex.filter(e=>e.slot!==v);redistribute(d);render();break;}
+    case 'outm':outModal(v);break;
+    case 'outsave':{const d=getDay(cur),k=+$('#ok2').value||+$('#ok').value,nm=$('#on').value.trim();d.ex.push({n:'Mimo domov: '+(nm||slotName(v).toLowerCase()),k,soy:false,slot:v});d.skip=d.skip||{};d.skip[v]=true;d.out=d.out||{};d.out[v]=true;delete d.done[v];const r=redistribute(d);closeM();render();alert('Zapsáno '+k+' kcal. '+redMsg(r));break;}
+    case 'rescue':{const d=getDay(cur);if(cur!==TODAY())return alert('Přeskládání je pro dnešek. U jiného dne použijte u jídla tlačítko Nestihl/a jsem.');const now=new Date(),nm=now.getHours()*60+now.getMinutes(),sk=[];activeSlots().forEach(s=>{if(d.done[s]||(d.skip&&d.skip[s])||!RB[d.m[s]])return;const at=S.set.rt&&S.set.rt[s];if(at&&nm>toMin(at)+90){d.skip=d.skip||{};d.skip[s]=true;sk.push(slotName(s));}});if(!sk.length)return alert('Všechno je podle plánu, nic zpožděného nevidím. Když něco nestihnete, použijte u jídla Nestihl/a jsem nebo Jím mimo domov.');const r=redistribute(d);render();alert('Vynecháno: '+sk.join(', ')+'. '+redMsg(r));break;}
+    case 'freeday':{const d=getDay(v);d.free=!d.free;if(d.free)d.freeK=500;render();if(d.free)alert('Volnější den: cíl dne je o 500 kcal vyšší. Bez výčitek, další den jedete dál podle plánu.');break;}
+    case 'pantryadd':{const n=$('#pn').value,q=+$('#pq').value;if(!(q>0))return alert('Napište množství (g, ml nebo kusy).');S.pantry=S.pantry||{};const e=S.pantry[n];S.pantry[n]={q:(e?e.q:0)+q,d:TODAY(),a:TODAY()};render();break;}
+    case 'pantrydel':delete S.pantry[v];render();break;
+    case 'pantrydone':{const t=addD(TODAY(),7*wo);if(S.pantryDone&&S.pantryDone[t])return alert('Zbytky z tohoto týdne už jsou uložené.');const sel=S.shop.days||[0,1,2,3,4,5,6],SD=shopData(t,sel),np={},names=new Set(Object.keys(S.pantry||{}));SD.al.forEach(b=>names.add(b.n));
+      names.forEach(n=>{const e=S.pantry[n],pq=e?e.q:0,used=SD.cons[n]||0;let bs=0,ns=0;SD.al.filter(b=>b.n===n).forEach(b=>{bs+=b.bought;ns+=b.q;});const left=pq-used+bs-ns;if(left>=(unitOf(n)==='ks'?1:30))np[n]={q:Math.round(left*10)/10,d:bs>ns?TODAY():(e?e.d:TODAY()),a:bs>ns?addD(t,7):(e&&e.a)||TODAY()};});
+      S.pantry=np;S.pantryDone=S.pantryDone||{};S.pantryDone[t]=1;render();alert('Uloženo položek doma: '+Object.keys(np).length+'. Při příštím nákupu se odečtou a aplikace je přednostně použije.');break;}
+    case 'fridge':S.fq=$('#fq').value;render();break;
+    case 'fridgep':S.fq=Object.keys(S.pantry||{}).filter(n=>S.pantry[n].q>0).join(', ');render();break;
+    case 'puttoday':{const x=RB[v];if(!x)break;if(!activeSlots().includes(x.s))return alert('Tohle jídlo patří do části dne, kterou máte vypnutou (zapnete v Nastavení).');const d=getDay(TODAY());d.m[x.s]=v;if(d.sub)delete d.sub[x.s];calcF(d);cur=TODAY();tab='dnes';render();window.scrollTo(0,0);break;}
+    case 'adj':{const fl=S.pf.sex==='m'?1500:1200,nt=clamp(target()+ +v,fl,3500);if(nt===target()&&+v<0)return alert('Níž už nejdu, kvůli zdraví je to spodní hranice.');S.pf.kcal=nt;const t0=TODAY();for(let i=1;i<30;i++){const dt=addD(t0,i),pd=S.plan[dt];if(pd&&!Object.keys(pd.done).length&&!Object.keys(pd.skip||{}).length&&!Object.values(pd.lock||{}).some(Boolean))delete S.plan[dt];}render();alert('Nový denní cíl: '+nt+' kcal. Dny, které ještě nezačaly, se přepočítají.');break;}
+    case 'cook2':{const d=getDay(cur),nd=getDay(addD(cur,1));nd.m[v]=d.m[v];nd.sub=nd.sub||{};if(d.sub&&d.sub[v])nd.sub[v]=Object.assign({},d.sub[v]);else delete nd.sub[v];nd.lock=nd.lock||{};nd.lock[v]=true;nd.left=nd.left||{};nd.left[v]=true;calcF(nd);d.lock=d.lock||{};d.lock[v]=true;render();alert('Hotovo. Uvařte dvojitou porci, zítra v '+slotName(v).toLowerCase()+' máte stejné jídlo a stačí ho ohřát.');break;}
+    case 'impm':impModal();break;
+    case 'impgo':impParse($('#impt').value.split(/\r?\n/));break;
+    case 'impsave':{let c=0;IMP.filter(x=>x.on).forEach(x=>{newCustom({s:x.s,n:x.n,k:+x.k||0,p:+x.p||0,ing:x.ing,soy:x.soy});c++;});closeM();render();alert('Přidáno jídel: '+c+'. Najdete je v záložce Recepty a budou se zařazovat do jídelníčku.');break;}
+    case 'customm':customModal();break;
+    case 'customsave':{const n=$('#cnm').value.trim();if(!n)return alert('Napište název jídla.');const o=parseIng($('#ci').value.trim()||n),nu=nutOf(o),k=+$('#ck').value||nu.k;if(!k)return alert('Nepodařilo se odhadnout kalorie. Doplňte je ručně.');newCustom({s:$('#cs').value,n,k,p:+$('#cp').value||nu.p,ing:ingStr(o),soy:$('#csoy').checked||/sój|sojov|tofu|tempeh|miso/i.test(n)?1:0});closeM();render();break;}
+    case 'delcustom':if(confirm('Smazat tento vlastní recept?')){const i=R.findIndex(x=>x.id===v);if(i>=0)R.splice(i,1);delete RB[v];S.custom=S.custom.filter(x=>x.id!==v);S.fav=S.fav.filter(x=>x!==v);render();}break;
+    case 'notif':{if(!('Notification' in window))return alert('Tento prohlížeč upozornění nepodporuje.');Notification.requestPermission().then(r=>alert(r==='granted'?'Upozornění povolena.':'Upozornění nejsou povolena, připomínky se budou ukazovat jen uvnitř aplikace.'));break;}
+    case 'shopshare':{let tx='Nákup\n';document.querySelectorAll('.shop h3, .shop h4, .shop li').forEach(el=>{tx+=el.tagName==='H3'?'\n== '+el.innerText+' ==\n':el.tagName==='H4'?'\n'+el.innerText+'\n':'- '+el.querySelector('label').innerText.trim()+'\n';});if(navigator.share){navigator.share({title:'Nákup',text:tx}).catch(()=>{});}else if(navigator.clipboard){navigator.clipboard.writeText(tx).then(()=>alert('Seznam je zkopírovaný, vložte ho třeba do zprávy.'));}break;}
+    case 'rndswap':{const d=getDay(cur);const p=pool(v).filter(x=>x.id!==d.m[v]);if(p.length){d.m[v]=rnd(p).id;if(d.sub)delete d.sub[v];calcF(d);}closeM();render();break;}
+    case 'setmeal':{const d=getDay(cur);d.m[t.dataset.s]=v;if(d.sub)delete d.sub[t.dataset.s];calcF(d);closeM();render();break;}
+    case 'addex':{const n=$('#exn').value.trim(),k=+$('#exk').value;if(!n)return alert('Napište, co to bylo.');getDay(cur).ex.push({n,k:k||0,soy:$('#exs').checked});render();break;}
+    case 'delex':getDay(cur).ex.splice(+v,1);render();break;
+    case 'qwt':{const w=+$('#qw').value;if(!w)return alert('Napište váhu v kg.');putW(cur,w);render();break;}
+    case 'regen':genDay(cur);render();break;
+    case 'regenday':genDay(v);render();break;
+    case 'regenweek':if(confirm('Vymyslet týden znovu a chytře sloučit nákup? Zamknutá a už snědená jídla zůstanou.')){const b=addD(TODAY(),7*wo);for(let i=0;i<7;i++)genDay(addD(b,i));optimizeWeek(b,true);S.smart[b]=1;render();}break;
+    case 'regenall':{const t0=TODAY();for(let i=0;i<30;i++){const dt=addD(t0,i);if(S.plan[dt]&&!Object.keys(S.plan[dt].done).length)delete S.plan[dt];}render();alert('Hotovo, další dny se vymyslí podle nového nastavení.');break;}
+    case 'fav':S.ban=S.ban.filter(x=>x!==v);S.fav=S.fav.includes(v)?S.fav.filter(x=>x!==v):S.fav.concat(v);render();break;
+    case 'ban':S.fav=S.fav.filter(x=>x!==v);S.ban=S.ban.includes(v)?S.ban.filter(x=>x!==v):S.ban.concat(v);render();break;
+    case 'addw':{const w=+$('#ww').value,c=+$('#wc').value,d=$('#wd').value;if(!w||!d)return alert('Vyplňte datum a váhu.');putW(d,w,c);render();break;}
+    case 'print':window.print();break;
+    case 'shopreset':S.shop.ck={};render();break;
+    case 'export':{const b=new Blob([JSON.stringify(S)],{type:'application/json'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download='jidelnicek-zaloha-'+TODAY()+'.json';l.click();break;}
+    case 'wipe':if(confirm('Opravdu smazat všechna data (váhy, zápisy, nastavení)?')&&confirm('Je to nevratné. Smazat?')){localStorage.removeItem(KEY);location.reload();}break;
+  }
+});
+function putW(d,w,c){S.wt=S.wt.filter(x=>x.d!==d);S.wt.push({d,w,c:c||0});S.wt.sort((a,b)=>a.d<b.d?-1:1);}
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.imp){impEdit(t);return;}
+  if(t.dataset.p){S.price[t.dataset.p]=+t.value;save();return;}
+  if(t.dataset.a==='rmon'){S.rm=+t.value;render();return;}
+  if(t.id==='impf'){impFile(t.files[0]);return;}
+  if(t.dataset.f){const pa=t.dataset.f.split('.'),g=pa[0],k=pa[1];let val=t.type==='checkbox'?t.checked:t.value;if(pa.length===3)S[g][k][pa[2]]=val;else S[g][k]=val;if(g==='pf'&&k==='w'&&val&&!S.wt.length)putW(TODAY(),+val);
+    if(pa.length===3||k==='bed'){save();return;}
+    if(t.type==='radio'||t.tagName==='SELECT'||t.type==='checkbox'||k==='kcal'||g==='pf'){render();}else save();return;}
+  if(t.dataset.a==='rfs'){S.rf=Object.assign(S.rf||{q:''},{s:t.value});render();}
+  if(t.dataset.a==='rper'){S.rp=+t.value;render();}
+  if(t.id==='imp'){const f=t.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);S=Object.assign(defaults(),j);save();alert('Záloha obnovena.');location.reload();}catch(er){alert('Soubor se nepodařilo načíst.');}};rd.readAsText(f);}
+});
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.a==='rfq'){S.rf=Object.assign(S.rf||{s:'all'},{q:t.value});const pos=t.selectionStart;render();const n=$('#rq');n.focus();n.setSelectionRange(pos,pos);}
+  else if(t.dataset.f&&t.type!=='radio'&&t.type!=='checkbox'&&t.tagName!=='SELECT'){const pa=t.dataset.f.split('.');if(pa.length===3)S[pa[0]][pa[1]][pa[2]]=t.value;else S[pa[0]][pa[1]]=t.value;save();}});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeM();});
+render();
+setInterval(remCheck,30000);setTimeout(remCheck,1500);
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
