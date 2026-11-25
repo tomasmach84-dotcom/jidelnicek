@@ -5,56 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Můj jídelníček</title>
 <style>
-:root{--bg:#f5f3ec;--card:#fff;--ink:#23302a;--mut:#6b7770;--g:#2f7d4f;--g2:#e3f1e8;--warn:#b4541a;--warn2:#fdeede;--bad:#b3261e;--line:#e2e0d6}
+:root{--bg:#f1f6f1;--card:#fff;--ink:#1d2b24;--mut:#64766c;--g:#2fa466;--g2:#e1f4e9;--g3:#1d7a4a;--warn:#d4601c;--warn2:#fff0e2;--bad:#c62f2f;--line:#e2eae4;--gold:#f5b324;--shadow:0 6px 22px rgba(30,90,60,.09);--hero:linear-gradient(135deg,#2fb673 0%,#1f9a73 50%,#2a85a8 100%)}
+@media(prefers-color-scheme:dark){:root{--bg:#101814;--card:#1a2620;--ink:#e8f2ec;--mut:#9bb1a5;--g:#46c887;--g2:#21392c;--g3:#86e3b1;--warn:#ff9d5c;--warn2:#3a2b1e;--bad:#ff8080;--line:#2a3b33;--shadow:0 6px 22px rgba(0,0,0,.4);--hero:linear-gradient(135deg,#1c6c4a,#176058 55%,#1a5069)}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 "Segoe UI",system-ui,sans-serif}
-header{background:var(--g);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-header h1{margin:0;font-size:1.25rem}
-nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-nav button{background:transparent;border:0;color:#fff;font:inherit;padding:8px 12px;border-radius:8px;cursor:pointer}
-nav button.on{background:#fff;color:var(--g);font-weight:600}
-main{max-width:1000px;margin:0 auto;padding:14px 14px 80px}
-.card{background:var(--card);border-radius:14px;padding:14px 16px;margin:0 0 12px;box-shadow:0 1px 3px #0001}
-h2{margin:.2em 0 .5em;font-size:1.3rem}h3{margin:.2em 0 .4em;font-size:1.05rem}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 "Segoe UI",system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+header{position:sticky;top:0;z-index:8;background:var(--card);box-shadow:0 2px 14px rgba(0,0,0,.07);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:8px;color:var(--g3)}.brand i{font-style:normal;font-size:1.6rem}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{background:transparent;border:0;color:var(--mut);font:inherit;font-size:.95rem;padding:8px 12px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+nav button i{font-style:normal;font-size:1.15rem}nav button.on{background:var(--g2);color:var(--g3);font-weight:700}
+main{max-width:980px;margin:0 auto;padding:16px 14px 100px}
+.card{background:var(--card);border-radius:22px;padding:16px 18px;margin:0 0 14px;box-shadow:var(--shadow);animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+h2{margin:.1em 0 .5em;font-size:1.45rem}h3{margin:.1em 0 .5em;font-size:1.08rem}
 .muted{color:var(--mut);font-size:.9rem}
-button.b,label.b{display:inline-block;background:var(--g);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;cursor:pointer}
-button.b.s{background:var(--g2);color:var(--g)}button.b.w{background:var(--warn2);color:var(--warn)}button.b.x{background:#fff;color:var(--bad);border:1px solid var(--line)}
-button.b.sm{padding:5px 10px;font-size:.88rem}
-input,select,textarea{font:inherit;padding:8px 10px;border:1px solid #cfcdc2;border-radius:8px;background:#fff;max-width:100%}
+button.b,label.b{display:inline-block;background:linear-gradient(180deg,var(--g),var(--g3));color:#fff;border:0;border-radius:14px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.12);transition:transform .08s,filter .15s}
+button.b:hover,label.b:hover{filter:brightness(1.06)}button.b:active{transform:translateY(2px);box-shadow:none}
+button.b.s,label.b.s{background:var(--g2);color:var(--g3);box-shadow:none}button.b.w{background:var(--warn2);color:var(--warn);box-shadow:none}button.b.x{background:transparent;color:var(--bad);border:1.5px solid var(--line);box-shadow:none}
+button.b.sm{padding:6px 12px;font-size:.88rem;border-radius:11px}button.b.big{width:100%;padding:14px;font-size:1.05rem;margin-top:10px}button.b:disabled{opacity:.4;cursor:default}
+input,select,textarea{font:inherit;padding:9px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--g);border-color:transparent}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.form label{display:block;font-size:.9rem;color:var(--mut)}
-.form input,.form select{width:100%;margin-top:3px}
-.bar{height:16px;background:#e8e6dc;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--g);transition:width .3s}.bar i.over{background:var(--warn)}
-.meal{border-left:6px solid var(--line)}.meal.done{border-left-color:var(--g);background:#f4faf6}
-.slot{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
-.mname{font-size:1.08rem;margin:.15em 0}
-.chip{display:inline-block;background:#efede4;border-radius:12px;padding:1px 9px;margin:2px 3px 2px 0;font-size:.82rem}
-.soy{background:var(--warn2);color:var(--warn);border-radius:12px;padding:1px 9px;font-size:.82rem;font-weight:600}
-.nosoy{background:var(--g2);color:var(--g);border-radius:12px;padding:1px 9px;font-size:.82rem;font-weight:600}
-.cups{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}.cup{width:26px;height:32px;border:2px solid #7fb4d6;border-radius:3px 3px 8px 8px;background:#fff}.cup.f{background:#a8d4ee}
-.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-.day.today{outline:2px solid var(--g)}
-.day ul{padding-left:18px;margin:6px 0;font-size:.9rem}
-table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-#modal{position:fixed;inset:0;background:#0007;display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:9;overflow:auto}
-#modal.on{display:flex}#modal .box{background:#fff;border-radius:14px;padding:16px;max-width:640px;width:100%}
-.pick{display:flex;gap:10px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:8px 2px;cursor:pointer}.pick:hover{background:#f4faf6}
-.shop li{list-style:none;padding:4px 0}.shop ul{padding:0;margin:0 0 8px}.shop .ck{text-decoration:line-through;color:var(--mut)}
-.shop input{width:20px;height:20px;vertical-align:middle;margin-right:8px}
-.tip{background:var(--g2);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.form label{display:block;font-size:.9rem;color:var(--mut)}.form input,.form select{width:100%;margin-top:3px}
+.bar{height:14px;background:var(--line);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g),#7ee0a6);border-radius:9px;transition:width .6s}.bar i.over{background:linear-gradient(90deg,var(--warn),#ffb27a)}.bar.thin{height:8px}
+/* hero */
+.hero{background:var(--hero);color:#fff;border-radius:26px;padding:18px 18px 14px;margin-bottom:14px;box-shadow:0 10px 28px rgba(31,140,100,.32);animation:rise .4s ease both}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}.hello{font-size:1.45rem;font-weight:800}.hero .sub{opacity:.9;font-size:.95rem}
+.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{background:rgba(255,255,255,.22);padding:4px 12px;border-radius:20px;font-weight:700;font-size:.9rem}
+.hero-main{display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.ring{position:relative;width:170px;height:170px;flex:none}.ring svg{width:100%;height:100%}
+.ring .rt{fill:none;stroke:rgba(255,255,255,.25);stroke-width:14}.ring .rp{fill:none;stroke:#fff;stroke-width:14;stroke-linecap:round;transition:stroke-dasharray .8s}.ring .rp.over{stroke:#ffd0a8}
+.rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.rc b{font-size:2.3rem;line-height:1}.rc span{font-size:.8rem;opacity:.9}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1;min-width:230px}.tile{background:rgba(255,255,255,.18);border-radius:16px;padding:10px 6px;text-align:center;display:flex;flex-direction:column}.tile i{font-style:normal;font-size:1.4rem}.tile b{font-size:1.1rem}.tile span{font-size:.75rem;opacity:.9}
+.xp{display:flex;align-items:center;gap:10px;font-size:.8rem}.xp .bar{flex:1;background:rgba(255,255,255,.25)}.xp .bar i{background:#fff}
+/* trenér */
+.coach{display:flex;gap:10px;align-items:flex-end;margin-bottom:14px}.mascot{width:52px;height:52px;border-radius:50%;background:var(--g2);display:flex;align-items:center;justify-content:center;font-size:2rem;flex:none;box-shadow:var(--shadow)}
+.bubble{background:var(--card);border-radius:20px 20px 20px 6px;padding:12px 16px;box-shadow:var(--shadow);font-weight:600}
+/* cesta */
+.track{position:relative;height:16px;background:var(--line);border-radius:10px;margin:38px 8px 26px}.track .fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--g),#8be3ad);transition:width .8s}
+.runner{position:absolute;top:-30px;transform:translateX(-50%);font-size:1.6rem;transition:left .8s}.flag{position:absolute;right:-6px;top:-30px;font-size:1.5rem}
+.ms{position:absolute;top:20px;transform:translateX(-50%);font-size:.7rem;color:var(--mut)}.ms.on{color:var(--g);font-weight:700}
+.jrow{display:flex;justify-content:space-between;align-items:baseline;font-size:.9rem;color:var(--mut)}.jrow b{font-size:1.4rem;color:var(--ink)}.jmsg{margin:8px 0 0}
+/* mise */
+.mi{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)}.mi:first-of-type{border-top:0}.mi .ck{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;font-size:.95rem}.mi.ok .ck{background:var(--g);border-color:var(--g);color:#fff;animation:pop .35s}.mi .mt{flex:1}.mi .bar{margin-top:5px;height:7px}
+/* jídla */
+.meal{border-left:6px solid var(--line)}.meal.done{border-left-color:var(--g);background:linear-gradient(0deg,var(--card),var(--card)),var(--g2)}
+.mhead{display:flex;gap:12px;align-items:center}.mic{width:50px;height:50px;border-radius:16px;background:var(--g2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex:none}.done .mic{background:var(--g);animation:pop .35s}
+.slot{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}.mname{font-size:1.05rem;margin:.1em 0;font-weight:600}
+.opts{margin-top:8px}.opts summary{cursor:pointer;color:var(--mut);font-size:.9rem}.opts .row{margin-top:8px}
+.chip{display:inline-block;background:var(--g2);color:var(--g3);border-radius:12px;padding:2px 10px;margin:2px 3px 2px 0;font-size:.82rem}
+.soy{background:var(--warn2);color:var(--warn);border-radius:12px;padding:1px 10px;font-size:.82rem;font-weight:700}.nosoy{background:var(--g2);color:var(--g3);border-radius:12px;padding:1px 10px;font-size:.82rem;font-weight:700}
+.cups{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.cup{width:28px;height:34px;border:2.5px solid #6fb1da;border-radius:4px 4px 10px 10px;background:transparent;transition:background .3s}.cup.f{background:linear-gradient(180deg,#9fd2f0,#5aa8dc)}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.day.today{outline:3px solid var(--g)}.day ul{padding-left:18px;margin:6px 0;font-size:.9rem}
+.daynav{justify-content:space-between;margin-bottom:10px}.daynav b{font-size:1.1rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+#modal{position:fixed;inset:0;background:#0008;display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:30;overflow:auto}#modal.on{display:flex}#modal .box{background:var(--card);border-radius:22px;padding:18px;max-width:640px;width:100%}
+.pick{display:flex;gap:10px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:9px 2px;cursor:pointer}.pick:hover{background:var(--g2)}
+.shop li{list-style:none;padding:5px 0}.shop ul{padding:0;margin:0 0 8px}.shop .ck{text-decoration:line-through;color:var(--mut)}.shop input{width:20px;height:20px;vertical-align:middle;margin-right:8px}.shop h4{margin:10px 0 2px;color:var(--g3)}
+.tip{background:var(--g2);border-radius:16px;padding:11px 15px;margin-bottom:14px}
 .hide{display:none}
-@media print{header,nav,.noprint,button{display:none!important}body{background:#fff}.card{box-shadow:none;border:1px solid #ccc}}
-#toasts{position:fixed;right:12px;bottom:12px;z-index:20;display:flex;flex-direction:column;gap:8px;max-width:340px}
-.toast{background:#23302a;color:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 4px 16px #0004}.toast button{margin-top:6px}
-.al{border-left:5px solid #e0b252;background:#fff8e6;padding:7px 11px;margin:6px 0;border-radius:6px;font-size:.95rem}.al.i{border-color:#6aa8d6;background:#eef6fc}
-details summary{cursor:pointer;color:var(--g);font-weight:600;margin:4px 0}
+/* odznaky */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px}.bdg{background:var(--g2);border-radius:18px;padding:12px 8px;text-align:center}.bdg i{font-style:normal;font-size:2rem;display:block}.bdg b{display:block;font-size:.9rem}.bdg span{font-size:.75rem;color:var(--mut)}
+.bdg.lock{background:var(--line);filter:grayscale(1);opacity:.55}
+#toasts{position:fixed;right:12px;bottom:84px;z-index:40;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.toast{background:#23302a;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 22px #0005;animation:rise .3s}.toast.bd{background:linear-gradient(135deg,#d99a0b,#f5b324);color:#2b1c00}.toast button{margin-top:6px}
+.al{border-left:5px solid #e0b252;background:var(--warn2);padding:8px 12px;margin:6px 0;border-radius:10px;font-size:.95rem}.al.i{border-color:#6aa8d6;background:var(--g2)}
+details summary{cursor:pointer;color:var(--g3);font-weight:600;margin:4px 0}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media(max-width:760px){header{padding:8px 14px}nav{position:fixed;bottom:0;left:0;right:0;margin:0;background:var(--card);justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.12);z-index:20}nav button{flex-direction:column;gap:0;font-size:.68rem;padding:4px 6px;flex:1}nav button i{font-size:1.45rem}.hero-main{justify-content:center}#toasts{bottom:90px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{header,nav,.noprint,button,.coach,.hero{display:none!important}body{background:#fff;color:#000}.card{box-shadow:none;border:1px solid #ccc;animation:none}}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><meta name="theme-color" content="#2f7d4f">
 </head>
 <body>
 <header>
-  <h1>Můj jídelníček</h1>
+  <div class="brand"><i>🥑</i><span>Můj jídelníček</span></div>
   <nav id="nav"></nav>
 </header>
 <main id="main"></main>
@@ -278,39 +306,36 @@ function dayPlanK(d){return Math.round(activeSlots().reduce((a,s)=>a+(RB[d.m[s]]
 
 /* ============ ZOBRAZENÍ ============ */
 let tab='dnes',cur=TODAY(),wo=0;
+const TI={dnes:'🍽️',tyden:'📅',nakup:'🛒',pokrok:'📈',recepty:'📖',nast:'⚙️'};
 const TABS=[['dnes','Dnes'],['tyden','Týden'],['nakup','Nákup'],['pokrok','Pokrok a zpráva'],['recepty','Recepty'],['nast','Nastavení']];
 function render(){
-  $('#nav').innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+  $('#nav').innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${tab===t[0]?'on':''}"><i>${TI[t[0]]}</i><span>${t[1].replace(' a zpráva','')}</span></button>`).join('');
   const f={dnes:vDnes,tyden:vTyden,nakup:vNakup,pokrok:vPokrok,recepty:vRecepty,nast:vNast}[tab];
-  $('#main').innerHTML=f();save();
+  $('#main').innerHTML=f();save();afterRender();
 }
 function soyBadge(x){return x.soy===1?'<span class="soy">obsahuje sóju</span>':x.soy===2?'<span class="soy">může obsahovat sóju</span>':'';}
 function chips(x,f,d,s){return ingList(x,d,s).map(i=>{const u=(ING[i.n]||'X').split('/')[1]||'g';const q=u==='ks'?Math.max(1,Math.round(i.q*f)):Math.round(i.q*f);return `<span class="chip"${i.n!==i.o?' style="background:var(--warn2);color:var(--warn)"':''}>${i.n} ${q} ${u}</span>`;}).join('');}
 
 function vDnes(){
-  if(!S.pf.sex||!S.pf.age||!S.pf.h||!S.pf.w){return `<div class="card"><h2>Vítejte</h2><p>Aby aplikace spočítala, kolik můžete denně sníst, vyplňte prosím pár údajů (zabere to minutu).</p><button class="b" data-a="tab" data-v="nast">Vyplnit údaje</button></div>`;}
+  if(!S.pf.sex||!S.pf.age||!S.pf.h||!S.pf.w){return `<div class="hero"><div class="hello">Vítejte! 🥑</div><p>Spočítáme váš denní cíl, sestavíme jídelníček na míru a pomůžeme vám nenápadně hubnout. Stačí vyplnit pár údajů, zabere to minutu.</p><button class="b" style="background:#fff;color:#1d7a4a" data-a="tab" data-v="nast">Začít</button></div>`;}
   const d=getDay(cur),T=dayTarget(d),k=dayKcal(d),pct=Math.min(100,Math.round(k/T*100));
   const tip=TIPS[(parse(cur).getDate()+parse(cur).getMonth())%TIPS.length];
   const sl=activeSlots();
   const cups=Array.from({length:waterGoal()},(_,i)=>`<span class="cup ${i<d.water?'f':''}"></span>`).join('');
   const soyWeek=weekSoy(cur);
-  let h=`<div class="row" style="justify-content:space-between;margin-bottom:8px"><button class="b s" data-a="day" data-v="-1">&lt; Včera</button><h2 style="margin:0">${fmt(cur)}${cur===TODAY()?' (dnes)':''}</h2><button class="b s" data-a="day" data-v="1">Zítra &gt;</button></div>
-  <div class="tip">${tip}</div>${dayTools(d)}${alertsHtml(dayAlerts(cur))}
-  <div class="card"><div class="row" style="justify-content:space-between"><b>Snězeno: ${k} kcal z ${T}</b><span class="muted">Bílkoviny: ${dayProt(d)} g</span></div>
-  <div class="bar" style="margin:6px 0"><i class="${k>T?'over':''}" style="width:${pct}%"></i></div>
-  <div class="muted">Plán na tento den: ${dayPlanK(d)} kcal${d.f!==1?` (porce ×${String(d.f).replace('.',',')}, ke všem množstvím přidejte ${Math.round((d.f-1)*100)} %)`:''}</div>
-  <h3 style="margin-top:12px">Pití: ${d.water} z ${waterGoal()} sklenic (á 2,5 dl)</h3><div class="cups">${cups}</div>
+  let h=`<div class="row daynav"><button class="b s sm" data-a="day" data-v="-1">&lt; Včera</button><b>${fmt(cur)}${cur===TODAY()?' (dnes)':''}</b><button class="b s sm" data-a="day" data-v="1">Zítra &gt;</button></div>`+heroHtml(d,T,k)+coachHtml(d,T,k)+journeyHtml(true)+missionsHtml(d,T,k)+dayTools(d)+alertsHtml(dayAlerts(cur))+
+  `<div class="card"><h3>💧 Pití: ${d.water} z ${waterGoal()} sklenic (á 2,5 dl)</h3><div class="cups">${cups}</div>
   <div class="row"><button class="b s sm" data-a="water" data-v="1">+ sklenice</button><button class="b s sm" data-a="water" data-v="-1">- sklenice</button>
-  <span class="${soyWeek?'soy':'nosoy'}" style="margin-left:auto">Sója za posledních 7 dní: ${soyWeek} jídel</span></div></div>`;
+  <span class="${soyWeek?'soy':'nosoy'}" style="margin-left:auto">Sója za 7 dní: ${soyWeek} jídel</span></div></div>`;
   for(const s of sl){
-    const x=RB[d.m[s]];if(!x)continue;const dn=d.done[s],sk=d.skip&&d.skip[s],fz=mf(d,s);
-    if(sk){h+=`<div class="card meal" style="opacity:.75"><div class="slot">${slotName(s)}</div><div class="mname"><s>${esc(x.n)}</s></div><div class="muted">${d.out&&d.out[s]?'Jídlo mimo domov, zapsáno níže mezi „navíc“.':'Vynecháno, zbylá jídla jsou upravená, aby den vyšel.'}</div><div class="row" style="margin-top:8px"><button class="b s sm" data-a="unskip" data-v="${s}">Vrátit zpět</button></div></div>`;continue;}
-    h+=`<div class="card meal ${dn?'done':''}"><div class="slot">${slotName(s)}</div><div class="mname">${esc(x.n)}</div>
-    <div class="muted">${Math.round(x.k*fz)} kcal, bílkoviny ${Math.round(x.p*fz)} g, asi ${mealCost(x,d,s)} Kč ${soyBadge(x)} ${leftNote(d,s)}${d.ff&&d.ff[s]&&d.ff[s]!==d.f?` <span class="soy">porce ×${String(d.ff[s]).replace('.',',')}</span>`:''}</div>
-    ${subNote(d,s)}<div class="hide" id="ing-${s}">${chips(x,fz,d,s)}</div>
-    <div class="row" style="margin-top:8px"><button class="b ${dn?'s':''}" data-a="done" data-v="${s}">${dn?'Snězeno v '+dn+' (zrušit)':'Snědl/a jsem to'}</button>
-    <button class="b s sm" data-a="swap" data-v="${s}">Změnit jídlo</button><button class="b s sm" data-a="subm" data-v="${s}">Záměna suroviny</button><button class="b s sm" data-a="ing" data-v="${s}">Suroviny</button><button class="b ${d.lock&&d.lock[s]?'w':'x'} sm" data-a="lock" data-v="${s}">${d.lock&&d.lock[s]?'Zamčeno (neměnit)':'Zamknout'}</button>${s==='ob'||s==='ve'?`<button class="b s sm" data-a="cook2" data-v="${s}">Uvařit na 2 dny</button>`:''}
-    ${dn?'':`<button class="b x sm" data-a="skipm" data-v="${s}">Nestihl/a jsem</button><button class="b x sm" data-a="outm" data-v="${s}">Jím mimo domov</button>`}</div></div>`;
+    const x=RB[d.m[s]];if(!x)continue;const dn=d.done[s],sk=d.skip&&d.skip[s],fz=mf(d,s),tm=S.set.rt&&S.set.rt[s]?' · '+S.set.rt[s]:'';
+    if(sk){h+=`<div class="card meal" style="opacity:.75"><div class="mhead"><div class="mic">${d.out&&d.out[s]?'🍴':'⏭️'}</div><div><div class="slot">${slotName(s)}</div><div class="mname"><s>${esc(x.n)}</s></div><div class="muted">${d.out&&d.out[s]?'Jídlo mimo domov, zapsáno níže mezi „navíc“.':'Vynecháno, zbylá jídla jsou upravená, aby den vyšel.'}</div></div></div><div class="row" style="margin-top:8px"><button class="b s sm" data-a="unskip" data-v="${s}">Vrátit zpět</button></div></div>`;continue;}
+    h+=`<div class="card meal ${dn?'done':''}"><div class="mhead"><div class="mic">${dn?'✅':ICON[s]}</div><div style="min-width:0"><div class="slot">${slotName(s)}${tm}</div><div class="mname">${esc(x.n)}</div>
+    <div class="muted">${Math.round(x.k*fz)} kcal · bílkoviny ${Math.round(x.p*fz)} g · asi ${mealCost(x,d,s)} Kč ${soyBadge(x)} ${leftNote(d,s)}${d.ff&&d.ff[s]&&d.ff[s]!==d.f?` <span class="soy">porce ×${String(d.ff[s]).replace('.',',')}</span>`:''}</div></div></div>
+    ${subNote(d,s)}<div class="hide" id="ing-${s}" style="margin-top:6px">${chips(x,fz,d,s)}</div>
+    <button class="b big ${dn?'s':''}" data-a="done" data-v="${s}">${dn?'Snězeno v '+dn+' (zrušit)':'✓ Snědl/a jsem to'}</button>
+    <details class="opts"><summary>Další možnosti</summary><div class="row"><button class="b s sm" data-a="swap" data-v="${s}">Změnit jídlo</button><button class="b s sm" data-a="subm" data-v="${s}">Záměna suroviny</button><button class="b s sm" data-a="ing" data-v="${s}">Suroviny</button><button class="b ${d.lock&&d.lock[s]?'w':'x'} sm" data-a="lock" data-v="${s}">${d.lock&&d.lock[s]?'Zamčeno (neměnit)':'Zamknout'}</button>${s==='ob'||s==='ve'?`<button class="b s sm" data-a="cook2" data-v="${s}">Uvařit na 2 dny</button>`:''}
+    ${dn?'':`<button class="b x sm" data-a="skipm" data-v="${s}">Nestihl/a jsem</button><button class="b x sm" data-a="outm" data-v="${s}">Jím mimo domov</button>`}</div></details></div>`;
   }
   h+=`<div class="card"><h3>Jedl/a jsem něco jiného nebo navíc</h3>
   <div class="row"><input id="exn" placeholder="Co to bylo" style="flex:2;min-width:160px"><input id="exk" type="number" placeholder="kcal (odhad)" style="width:130px"><label><input type="checkbox" id="exs"> sója</label><button class="b" data-a="addex">Přidat</button></div>
@@ -451,7 +476,7 @@ function vRecepty(){
 
 function vPokrok(){
   const W=S.wt,goal=+S.pf.goal;
-  let h=`<h2>Pokrok</h2>${weekEvalCard()}<div class="card noprint"><h3>Zapsat váhu</h3><div class="row"><input type="date" id="wd" value="${TODAY()}"><input id="ww" type="number" step="0.1" placeholder="váha (kg)" style="width:120px"><input id="wc" type="number" step="0.5" placeholder="pas (cm), nepovinné" style="width:170px"><button class="b" data-a="addw">Uložit</button></div></div>`;
+  let h=`<h2>Pokrok</h2>${journeyHtml(false)}${badgesCard()}${weekEvalCard()}<div class="card noprint"><h3>Zapsat váhu</h3><div class="row"><input type="date" id="wd" value="${TODAY()}"><input id="ww" type="number" step="0.1" placeholder="váha (kg)" style="width:120px"><input id="wc" type="number" step="0.5" placeholder="pas (cm), nepovinné" style="width:170px"><button class="b" data-a="addw">Uložit</button></div></div>`;
   h+=`<div class="card">${chart(W,goal)}`;
   if(W.length){const a=W[0],b=W[W.length-1],ch=b.w-a.w,days=(parse(b.d)-parse(a.d))/864e5;
     h+=`<div class="grid" style="margin-top:8px"><div><div class="muted">Start</div><b>${a.w} kg</b> (${fmtS(a.d)})</div><div><div class="muted">Teď</div><b>${b.w} kg</b></div><div><div class="muted">Změna</div><b>${(ch>0?'+':'')+ch.toFixed(1).replace('.',',')} kg</b></div>${goal?`<div><div class="muted">Do cíle ${goal} kg</div><b>${Math.max(0,b.w-goal).toFixed(1).replace('.',',')} kg</b></div>`:''}${+S.pf.h?`<div><div class="muted">BMI</div><b>${(b.w/Math.pow(S.pf.h/100,2)).toFixed(1).replace('.',',')}</b></div>`:''}</div>`;
@@ -634,7 +659,7 @@ function dayAlerts(date){
 }
 
 /* ============ PŘIPOMÍNKY ============ */
-function toast(t,b){const el=document.createElement('div');el.className='toast';el.innerHTML=`<b>${esc(t)}</b><div>${esc(b||'')}</div><button class="b s sm" onclick="this.parentNode.remove()">OK</button>`;$('#toasts').appendChild(el);}
+function toast(t,b,cls){const el=document.createElement('div');el.className='toast'+(cls?' '+cls:'');el.innerHTML=`<b>${esc(t)}</b><div>${esc(b||'')}</div><button class="b s sm" onclick="this.parentNode.remove()">OK</button>`;$('#toasts').appendChild(el);setTimeout(()=>{try{el.remove();}catch(e){}},cls==='bd'?12000:9000);}
 function ping(t,b){toast(t,b);try{if('Notification' in window&&Notification.permission==='granted')new Notification(t,{body:b||''});}catch(e){}}
 function remCheck(){
   if(!S.rem||!S.rem.on)return;
@@ -809,6 +834,113 @@ function weekEvalCard(){
   else if(avg>T*1.05)h+=`<div class="al i">Průměrně jíte víc, než je cíl (${avg} z ${T} kcal). Pomůže zapisovat i drobnosti a hlídat porce.</div>`;
   else h+='<div class="al i">Plán plníte a váha se nehýbe. Váha kolísá i kvůli vodě, hodnoťte aspoň dva týdny. Pokud to trvá, přidejte 20 minut chůze denně, nebo snižte cíl o 100 kcal.</div>'+btn(-100,'Snížit denní cíl o 100 kcal');
   return h+'</div>';
+}
+
+/* ============ MOTIVACE: skóre, série, úrovně, odznaky ============ */
+const ICON={sn:'🍳',ds:'🍎',ob:'🍲',os:'🥕',ve:'🐟',v2:'🥛'};
+const LVN=['Nováček','Začátečník','Pokračovatel','Bojovník','Pokročilý','Mistr','Šampion','Legenda'],LVX=[0,80,250,500,900,1500,2300,3400];
+function dayScore(d){
+  const sl=activeSlots().filter(s=>RB[d.m[s]]&&!(d.skip&&d.skip[s])),dn=sl.filter(s=>d.done[s]).length,T=dayTarget(d),k=dayKcal(d);
+  if(!dn&&!d.ex.length)return 0;
+  let sc=sl.length?dn/sl.length*40:0;
+  sc+=k>T*1.1?Math.max(0,30-(k-T*1.1)/T*100):Math.min(1,k/(T*0.85))*30;
+  sc+=Math.min(1,d.water/waterGoal())*20;sc+=daySoy(d)?0:10;
+  return Math.round(clamp(sc,0,100));
+}
+const isLogged=d=>!!d&&(Object.keys(d.done).length>=2||(d.ex&&d.ex.length>0&&Object.keys(d.done).length>=1));
+function streak(){let n=0,dt=TODAY();if(!isLogged(S.plan[dt]))dt=addD(dt,-1);while(isLogged(S.plan[dt])){n++;dt=addD(dt,-1);}return n;}
+function maxStreak(pred){const ks=Object.keys(S.plan).sort();let best=0,cur=0,prev=null;ks.forEach(k=>{const ok=pred(S.plan[k]);if(ok&&prev&&addD(prev,1)===k)cur++;else cur=ok?1:0;prev=ok?k:null;if(cur>best)best=cur;});return best;}
+function levelInfo(){let xp=0;Object.keys(S.plan).forEach(k=>{if(k<=TODAY())xp+=dayScore(S.plan[k]);});let n=0;LVX.forEach((v,i)=>{if(xp>=v)n=i;});const nx=LVX[n+1],cr=LVX[n];return {n:n+1,name:LVN[n],xp,next:nx,pct:nx?Math.round((xp-cr)/(nx-cr)*100):100};}
+function missionsList(d,T,k){
+  const sl=activeSlots().filter(s=>RB[d.m[s]]&&!(d.skip&&d.skip[s])),dn=sl.filter(s=>d.done[s]).length,wg=waterGoal();
+  return [{i:'🍽️',t:'Zapsat všechna jídla ('+dn+' z '+sl.length+')',v:dn,m:Math.max(1,sl.length),ok:sl.length>0&&dn===sl.length},
+    {i:'💧',t:'Vypít '+wg+' sklenic ('+d.water+')',v:Math.min(d.water,wg),m:wg,ok:d.water>=wg},
+    {i:'🎯',t:'Vejít se do kalorií ('+k+' z '+T+')',v:k>T*1.1?0:Math.min(k,T),m:T,ok:dn===sl.length&&sl.length>0&&k>=T*0.8&&k<=T*1.1},
+    {i:'🌿',t:'Den bez sóji',v:daySoy(d)?0:1,m:1,ok:!daySoy(d)&&(dn>0||d.ex.length>0)}];
+}
+const missionsDone=d=>missionsList(d,dayTarget(d),dayKcal(d)).every(m=>m.ok);
+function missionsHtml(d,T,k){
+  const ms=missionsList(d,T,k),dn=ms.filter(m=>m.ok).length;
+  return `<div class="card"><h3>Dnešní mise: ${dn} ze 4</h3>${ms.map(m=>`<div class="mi ${m.ok?'ok':''}"><div class="ck">${m.ok?'✓':''}</div><div class="mt">${m.i} ${m.t}<div class="bar"><i style="width:${Math.round(Math.min(1,m.v/m.m)*100)}%"></i></div></div></div>`).join('')}</div>`;
+}
+function heroHtml(d,T,k){
+  const sl=activeSlots().filter(s=>RB[d.m[s]]&&!(d.skip&&d.skip[s])),dn=sl.filter(s=>d.done[s]).length;
+  const pct=T?k/T:0,C=2*Math.PI*70,over=k>T*1.1,left=T-k,nm=(S.pf.name||'').trim().split(' ')[0],hr=new Date().getHours();
+  const hi=cur!==TODAY()?fmt(cur):(hr<10?'Dobré ráno':hr<18?'Dobré odpoledne':'Dobrý večer'),st=streak(),lv=levelInfo();
+  return `<div class="hero"><div class="hero-top"><div><div class="hello">${hi}${nm?', '+esc(nm):''}!</div><div class="sub">Denní cíl ${T} kcal</div></div><div class="pills"><span class="pill" title="Dny v řadě">🔥 ${st} ${st===1?'den':st>1&&st<5?'dny':'dní'}</span><span class="pill">⭐ Lv ${lv.n} ${lv.name}</span></div></div>
+  <div class="hero-main"><div class="ring"><svg viewBox="0 0 170 170"><circle cx="85" cy="85" r="70" class="rt"/><circle cx="85" cy="85" r="70" class="rp ${over?'over':''}" stroke-dasharray="${Math.min(1,pct)*C} ${C}" transform="rotate(-90 85 85)"/></svg><div class="rc"><b>${over?'+'+(-left):Math.max(0,left)}</b><span>${over?'kcal nad cílem':'kcal zbývá'}</span></div></div>
+  <div class="tiles"><div class="tile"><i>🥚</i><b>${dayProt(d)} g</b><span>bílkoviny</span></div><div class="tile"><i>💧</i><b>${d.water}/${waterGoal()}</b><span>sklenic</span></div><div class="tile"><i>✅</i><b>${dn}/${sl.length}</b><span>jídel</span></div></div></div>
+  <div class="xp"><span>Skóre dne ${dayScore(d)}</span><div class="bar thin"><i style="width:${lv.pct}%"></i></div><span>${lv.xp} b.${lv.next?' (do dalšího levelu '+(lv.next-lv.xp)+')':''}</span></div></div>`;
+}
+function coachMsg(d,T,k){
+  const sl=activeSlots().filter(s=>RB[d.m[s]]&&!(d.skip&&d.skip[s])),dn=sl.filter(s=>d.done[s]).length,st=streak(),j=journey(),hr=new Date().getHours();
+  if(cur!==TODAY())return 'Tady vidíte jídelníček na vybraný den. Můžete ho kdykoli upravit.';
+  if(missionsDone(d))return 'Dnes jste to zvládli! Všechny mise splněné, jste na skvělé cestě 🎉';
+  if(k>T*1.1)return 'Dnes je to víc než plán, ale nic si nevyčítejte. Další jídlo bude lehčí a zítra jedeme dál 💪';
+  if(dn===0)return hr<11?'Dobré ráno! Začněte snídaní a zapište ji, ať se řetěz dnů drží 🔥':'Zatím nic nezapsáno. Klepněte na „Snědl/a jsem to“ u jídla, které jste měli.';
+  if(st>=3&&dn<sl.length)return `🔥 ${st} dní v řadě! Ještě ${sl.length-dn} jídel a dnešek je dokonalý.`;
+  if(d.water<waterGoal()/2&&hr>=12)return 'Dejte si sklenici vody. Pitný režim hubnutí hodně pomáhá 💧';
+  if(j&&j.pct>=0.5)return `Jste už na ${Math.round(j.pct*100)} % cesty. Držte tempo!`;
+  return TIPS[(parse(cur).getDate()+parse(cur).getMonth())%TIPS.length];
+}
+function coachHtml(d,T,k){return `<div class="coach"><div class="mascot">🥑</div><div class="bubble">${coachMsg(d,T,k)}</div></div>`;}
+function journey(){const W=S.wt,goal=+S.pf.goal,start=W.length?W[0].w:(+S.pf.w||0),now=curW();if(!goal||!start||start<=goal)return null;const total=start-goal,lost=start-now;return {start,now,goal,total,lost,pct:clamp(lost/total,0,1),left:Math.max(0,now-goal)};}
+function journeyHtml(compact){
+  const j=journey();
+  if(!j)return compact?'':`<div class="card"><h3>Vaše cesta</h3><p class="muted">Nastavte cílovou váhu a uvidíte, jak se blížíte k cíli.</p><button class="b" data-a="tab" data-v="nast">Nastavit cíl</button></div>`;
+  const fm=x=>x.toFixed(1).replace('.',','),pc=Math.round(j.pct*100);
+  const msg=pc>=100?'Cíl splněn! Jste šampion 🎉':pc>=75?'Poslední úsek, už to cítíte!':pc>=50?'Půlka za vámi, držte tempo!':pc>=25?'Čtvrtina cesty hotová, skvělé!':j.lost>0?'První kilogramy jsou pryč, takhle dál!':'Každá velká cesta začíná prvním krokem.';
+  const eq=j.lost>=2?`To je jako ${Math.round(j.lost)} kg mouky, které už nenosíte.`:j.lost>=0.5?`To odpovídá asi ${Math.round(j.lost*4)}× 250 g másla.`:'';
+  return `<div class="card journey"><h3>Vaše cesta k cíli</h3><div class="track"><div class="fill" style="width:${pc}%"></div>${[25,50,75].map(m=>`<span class="ms ${pc>=m?'on':''}" style="left:${m}%">${m} %</span>`).join('')}<span class="runner" style="left:${Math.min(96,Math.max(3,pc))}%">🏃</span><span class="flag">🏁</span></div><div class="jrow"><span>Start ${fm(j.start)} kg</span><b>${fm(j.now)} kg</b><span>Cíl ${fm(j.goal)} kg</span></div><p class="jmsg"><b>${msg}</b> Zhubnuto ${fm(Math.max(0,j.lost))} kg z ${fm(j.total)}, zbývá ${fm(j.left)} kg. ${eq}</p></div>`;
+}
+const BADGES=[
+['first','✍️','První zápis','Zapsali jste první snědené jídlo',c=>c.meals>=1],
+['s3','🔥','3 dny v řadě','Tři dny po sobě zapisujete',c=>c.ms>=3],
+['s7','🔥','Týden v řadě','7 dní po sobě',c=>c.ms>=7],
+['s14','⚡','Dva týdny v řadě','14 dní po sobě',c=>c.ms>=14],
+['s30','👑','Měsíc v řadě','30 dní po sobě',c=>c.ms>=30],
+['water','💧','Vodník','Vypili jste celý pitný režim za den',c=>c.water],
+['perfect','⭐','Perfektní den','Skóre dne alespoň 90',c=>c.best>=90],
+['soy7','🌿','Týden bez sóji','7 zapsaných dní po sobě bez sóji',c=>c.soy>=7],
+['kg1','🥉','Minus 1 kg','Zhubli jste první kilo',c=>c.lost>=1],
+['kg3','🥈','Minus 3 kg','Tři kila dole',c=>c.lost>=3],
+['kg5','🥇','Minus 5 kg','Pět kil dole',c=>c.lost>=5],
+['kg10','🏆','Minus 10 kg','Deset kil dole',c=>c.lost>=10],
+['goal','🎉','Cíl splněn','Dosáhli jste cílové váhy',c=>c.goalHit],
+['weigh','⚖️','Pravidelné vážení','Zapsali jste 4 váhy',c=>c.weights>=4],
+['shop','🛒','Chytrý nákup','Uložili jste zbytky domů',c=>c.shop],
+['cook','🍲','Dvojitá porce','Uvařili jste na 2 dny',c=>c.cook],
+['free','🎈','Bez výčitek','Využili jste volnější den',c=>c.free],
+['out','🍴','Mimo domov a v kurzu','Zapsali jste jídlo mimo domov',c=>c.out],
+['mine','👩‍🍳','Vlastní kuchař','Přidali jste vlastní recept',c=>c.custom]];
+function badgeCtx(){
+  const ds=Object.keys(S.plan).map(k=>S.plan[k]);let meals=0,best=0,water=false,cook=false,free=false,out=false;
+  ds.forEach(d=>{meals+=Object.keys(d.done).length;best=Math.max(best,dayScore(d));if(isLogged(d)&&d.water>=waterGoal())water=true;if(d.left&&Object.keys(d.left).length)cook=true;if(d.free)free=true;if(d.out&&Object.keys(d.out).length)out=true;});
+  const W=S.wt,lost=W.length>1?W[0].w-curW():0,goal=+S.pf.goal;
+  return {meals,best,water,cook,free,out,ms:maxStreak(isLogged),soy:maxStreak(d=>isLogged(d)&&!daySoy(d)),lost,goalHit:!!goal&&W.length>1&&curW()<=goal,weights:W.length,shop:Object.keys(S.pantryDone||{}).length>0,custom:(S.custom||[]).length>0};
+}
+function checkBadges(){
+  const init=!S.bdInit;S.bdInit=1;S.bd=S.bd||{};const c=badgeCtx(),nw=BADGES.filter(b=>b[4](c)&&!S.bd[b[0]]);
+  if(!nw.length&&!init)return;nw.forEach(b=>S.bd[b[0]]=TODAY());save();
+  if(init)return;
+  if(nw.length>3)toast('Nové odznaky: '+nw.length,nw.map(b=>b[1]+' '+b[2]).join(', '),'bd');else nw.forEach(b=>toast('Nový odznak '+b[1]+' '+b[2],b[3],'bd'));confetti();
+}
+function badgesCard(){
+  const n=Object.keys(S.bd||{}).length;
+  return `<div class="card"><h3>Úspěchy: ${n} z ${BADGES.length}</h3><div class="badges">${BADGES.map(b=>{const got=S.bd&&S.bd[b[0]];return `<div class="bdg ${got?'':'lock'}"><i>${got?b[1]:'🔒'}</i><b>${b[2]}</b><span>${got?'od '+fmtS(got):b[3]}</span></div>`;}).join('')}</div></div>`;
+}
+function confetti(){
+  try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const old=document.getElementById('cf');if(old)old.remove();
+  const cv=document.createElement('canvas');cv.id='cf';cv.width=innerWidth;cv.height=innerHeight;document.body.appendChild(cv);
+  const cx=cv.getContext('2d'),cols=['#2fa466','#f5b324','#ff7a59','#4aa8e0','#e86fb0','#8be3ad'];
+  const ps=Array.from({length:140},()=>({x:cv.width/2+(Math.random()-.5)*200,y:cv.height*0.35,vx:(Math.random()-.5)*14,vy:-Math.random()*13-3,r:Math.random()*6+3,c:cols[Math.floor(Math.random()*cols.length)],a:Math.random()*6}));
+  let t=0;(function fr(){t++;cx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{p.vy+=0.35;p.x+=p.vx;p.y+=p.vy;p.a+=0.2;cx.fillStyle=p.c;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx.restore();});if(t<130)requestAnimationFrame(fr);else cv.remove();})();
+  }catch(e){}
+}
+function afterRender(){
+  try{checkBadges();
+  if(tab==='dnes'&&cur===TODAY()&&S.pf.sex){const d=S.plan[cur];if(d&&missionsDone(d)&&!(S.cel&&S.cel[cur])){S.cel=S.cel||{};S.cel[cur]=1;save();confetti();toast('🎉 Dnes jste to zvládli!','Všechny dnešní mise jsou splněné. Výborná práce.','bd');}}}catch(e){}
 }
 /* ============ AKCE ============ */
 document.addEventListener('click',e=>{
